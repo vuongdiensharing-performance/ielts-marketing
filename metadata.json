@@ -1,0 +1,6 @@
+{
+  "name": "Marketing English Lab",
+  "description": "A premium web-based English learning platform for Vietnamese marketers to master practical workplace communications.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
