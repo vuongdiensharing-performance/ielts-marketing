@@ -171,4 +171,6 @@ npm run preview
 
 ## License
 
-Chưa có license công khai. Không sử dụng lại hoặc phân phối lại source code khi chưa có sự cho phép của chủ repository.
+Marketing English Lab là dự án **proprietary / source-available**, không phải open source. Xem chi tiết tại [LICENSE](LICENSE).
+
+Không sao chép, tái sử dụng, chỉnh sửa, phân phối hoặc thương mại hóa source code, nội dung học, vocabulary packs, giao diện hoặc thương hiệu khi chưa có chấp thuận bằng văn bản từ chủ sở hữu.
