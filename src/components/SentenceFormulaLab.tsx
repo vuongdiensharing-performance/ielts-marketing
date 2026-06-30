@@ -344,7 +344,7 @@ export default function SentenceFormulaLab() {
       </div>
 
       <AnimatePresence mode="wait">
-        {activeSubTab === 'library' ? (
+        {activeSubTab === 'library' && (
           <motion.div
             key="library"
             initial={{ opacity: 0, y: 10 }}
@@ -646,7 +646,7 @@ export default function SentenceFormulaLab() {
 
             </div>
           </motion.div>
-        ) : (
+        )} {activeSubTab === 'builder' && (
           <motion.div
             key="builder"
             initial={{ opacity: 0, y: 10 }}
@@ -980,6 +980,39 @@ export default function SentenceFormulaLab() {
 
             </div>
 
+          </motion.div>
+        )}
+        {activeSubTab === 'practice' && (
+          <motion.div
+            key="practice"
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -10 }}
+            transition={{ duration: 0.15 }}
+          >
+            <PracticeView />
+          </motion.div>
+        )}
+        {activeSubTab === 'clinic' && (
+          <motion.div
+            key="clinic"
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -10 }}
+            transition={{ duration: 0.15 }}
+          >
+            <ClinicView />
+          </motion.div>
+        )}
+        {activeSubTab === 'apply' && (
+          <motion.div
+            key="apply"
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -10 }}
+            transition={{ duration: 0.15 }}
+          >
+            <ApplyItView />
           </motion.div>
         )}
       </AnimatePresence>
