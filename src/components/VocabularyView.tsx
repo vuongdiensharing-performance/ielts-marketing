@@ -3,6 +3,7 @@ import { ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight, Search, Setting
 import { UserProgress, VocabularyItem } from '../types';
 import { SEED_VOCABULARY } from '../data/seedData';
 import { VOCABULARY_PACK_1C } from '../data/vocabularyPack1C';
+import { FAMILY_LIFE_PACK_1 } from '../data/familyLifePack1';
 import VocabularyDetailDrawer from './VocabularyDetailDrawer';
 import { useSpeech } from '../hooks/useSpeech';
 
@@ -49,7 +50,7 @@ export default function VocabularyView({ userProgress, onUpdateProgress }: Vocab
   const [size, setSize] = useState<20 | 50>(20);
   const [page, setPage] = useState(1);
 
-  const vocabulary = useMemo(() => [...SEED_VOCABULARY, ...VOCABULARY_PACK_1C].map(normalized), []);
+  const vocabulary = useMemo(() => [...SEED_VOCABULARY, ...VOCABULARY_PACK_1C, ...FAMILY_LIFE_PACK_1].map(normalized), []);
   const categories = useMemo(() => ['All', ...Array.from(new Set(vocabulary.map((item) => item.category))).sort()], [vocabulary]);
   const filtered = useMemo(() => {
     const term = query.trim().toLowerCase();
@@ -160,7 +161,7 @@ export default function VocabularyView({ userProgress, onUpdateProgress }: Vocab
       {isEnglishFallback && <p className="text-amber-700">Google US English chưa có trên thiết bị này. Ứng dụng đang dùng giọng tiếng Anh gần nhất: {activeEnglishVoice?.name}</p>}
     </div>
 
-    {import.meta.env.DEV && <div className="rounded-xl border border-slate-800 bg-slate-900 p-4 text-xs font-mono text-slate-300">
+    {(import.meta as any).env?.DEV && <div className="rounded-xl border border-slate-800 bg-slate-900 p-4 text-xs font-mono text-slate-300">
       <p className="font-bold text-slate-100">Vocabulary Diagnostics</p>
       <p>Total: {counts.total} · Marketing: {counts.marketing} · Family Life: {counts.family}</p>
       <p>Filtered: {filtered.length} · Page size: {size} · Current page: {current} · Total pages: {totalPages} · Displayed: {start}–{end}</p>

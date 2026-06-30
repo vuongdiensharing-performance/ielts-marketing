@@ -31,7 +31,12 @@ const defaultProgress: UserProgress = {
     Writing: 10,
     Vocabulary: 25,
   },
-  lessonResponses: {}
+  lessonResponses: {},
+  speechSettings: {
+    selectedEnglishVoiceName: 'Google US English',
+    selectedVietnameseVoiceName: 'Linh',
+    speechRatePreset: 1
+  }
 };
 
 export default function App() {

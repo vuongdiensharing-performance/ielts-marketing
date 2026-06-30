@@ -53,10 +53,10 @@ export interface VocabularyItem {
   sourceLessonIds?: string[];
   
   // Canonical fields for normalization
-  keyword: string;
-  vietnameseMeaning: string;
-  topic: string;
-  marketingExample: string;
+  keyword?: string;
+  vietnameseMeaning?: string;
+  topic?: string;
+  marketingExample?: string;
   familyLifeExample?: string;
 }
 
@@ -182,11 +182,11 @@ export interface AudioMetadata {
 
 export interface LessonResponse {
   id: string;
-  trackId: 'marketing' | 'family-life';
-  moduleId: string;
+  trackId?: 'marketing' | 'family-life';
+  moduleId?: string;
   lessonId: string;
   challengeId?: string;
-  topicTags: string[];
+  topicTags?: string[];
   practiceAnswers: Record<string, string>;
   outputText: string;
   coachFeedback?: {
@@ -212,8 +212,10 @@ export interface LessonResponse {
   comprehensionSubmitted?: Record<string, boolean>;
   matchingCompletedPairs?: Record<string, Array<{ english: string; vietnamese: string }>>;
   reorderWordIndices?: Record<string, number[]>;
-  updatedAt: string;
-  createdAt: string;
+  audioId?: string;
+  audioTranscript?: string;
+  updatedAt?: string;
+  createdAt?: string;
 }
 
 export interface SpeechSettings {

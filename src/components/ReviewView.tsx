@@ -15,6 +15,7 @@ import {
 } from 'lucide-react';
 import { VocabularyItem, UserProgress } from '../types';
 import { SEED_VOCABULARY } from '../data/seedData';
+import { VOCABULARY_PACK_1C } from '../data/vocabularyPack1C';
 
 interface ReviewViewProps {
   userProgress: UserProgress;
@@ -37,12 +38,13 @@ export default function ReviewView({ userProgress }: ReviewViewProps) {
   const [scenarioSubmitted, setScenarioSubmitted] = useState(false);
 
   // Filter vocabulary by category
-  const filteredVocabulary = SEED_VOCABULARY.filter(v => {
+  const filteredVocabulary = [...SEED_VOCABULARY, ...VOCABULARY_PACK_1C].filter(v => {
+    const isFamily = v.track === 'family-life' || v.tags?.includes('family-life');
     if (filterCategory === 'marketing') {
-      return !v.tags?.includes('family-life');
+      return !isFamily;
     }
     if (filterCategory === 'family-life') {
-      return v.tags?.includes('family-life');
+      return isFamily;
     }
     return true;
   });
@@ -51,7 +53,11 @@ export default function ReviewView({ userProgress }: ReviewViewProps) {
   const bookmarkedWords = filteredVocabulary.filter(v => userProgress.vocabBookmarks.includes(v.id));
   const flashcardWords = bookmarkedWords.length > 0 ? bookmarkedWords : filteredVocabulary;
 
+  const safeIndex = flashcardWords.length > 0 ? Math.min(currentCardIndex, flashcardWords.length - 1) : 0;
+  const activeWord = flashcardWords.length > 0 ? flashcardWords[safeIndex] : null;
+
   const handleNextCard = () => {
+    if (flashcardWords.length === 0) return;
     setIsFlipped(false);
     setTimeout(() => {
       setCurrentCardIndex((prev) => (prev + 1) % flashcardWords.length);
@@ -59,6 +65,7 @@ export default function ReviewView({ userProgress }: ReviewViewProps) {
   };
 
   const handlePrevCard = () => {
+    if (flashcardWords.length === 0) return;
     setIsFlipped(false);
     setTimeout(() => {
       setCurrentCardIndex((prev) => (prev - 1 + flashcardWords.length) % flashcardWords.length);
@@ -228,7 +235,7 @@ export default function ReviewView({ userProgress }: ReviewViewProps) {
       {/* 1. FLASHCARDS EXPERIENCE */}
       {reviewMode === 'flashcards' && (
         <div className="space-y-6 max-w-xl mx-auto">
-          {bookmarkedWords.length === 0 && (
+          {bookmarkedWords.length === 0 && filteredVocabulary.length > 0 && (
             <div className="bg-amber-50 border border-amber-100 text-amber-800 px-4 py-3 rounded-xl text-xs flex items-center gap-2">
               <AlertCircle className="h-4 w-4 shrink-0" />
               <p>
@@ -237,111 +244,122 @@ export default function ReviewView({ userProgress }: ReviewViewProps) {
             </div>
           )}
 
-          {/* Flashcard container */}
-          <div 
-            className="perspective-1000 h-80 w-full cursor-pointer group"
-            onClick={() => setIsFlipped(!isFlipped)}
-          >
-            <div className={`relative w-full h-full duration-500 transform-style-3d ${
-              isFlipped ? 'rotate-y-180' : ''
-            }`}>
-              
-              {/* Card FRONT */}
-              <div className="absolute inset-0 backface-hidden bg-white border border-slate-100 rounded-3xl p-6 shadow-md hover:shadow-lg transition-shadow flex flex-col justify-between items-center text-center">
-                <div className="text-[10px] font-mono text-slate-400 font-bold tracking-wider">
-                  FLASHCARD {currentCardIndex + 1} / {flashcardWords.length}
-                </div>
+          {!activeWord ? (
+            <div className="bg-slate-50 border border-slate-100 p-8 rounded-2xl text-center text-xs text-slate-500 space-y-2">
+              <AlertCircle className="h-6 w-6 text-slate-400 mx-auto" />
+              <p className="font-bold">Không có từ vựng nào phù hợp</p>
+              <p>Hãy lưu một số từ vựng trước hoặc thay đổi bộ lọc để ôn tập nhé!</p>
+            </div>
+          ) : (
+            <>
+              {/* Flashcard container */}
+              <div 
+                className="perspective-1000 h-80 w-full cursor-pointer group"
+                onClick={() => setIsFlipped(!isFlipped)}
+              >
+                <div className={`relative w-full h-full duration-500 transform-style-3d ${
+                  isFlipped ? 'rotate-y-180' : ''
+                }`}>
+                  
+                  {/* Card FRONT */}
+                  <div className="absolute inset-0 backface-hidden bg-white border border-slate-100 rounded-3xl p-6 shadow-md hover:shadow-lg transition-shadow flex flex-col justify-between items-center text-center">
+                    <div className="text-[10px] font-mono text-slate-400 font-bold tracking-wider">
+                      FLASHCARD {safeIndex + 1} / {flashcardWords.length}
+                    </div>
 
-                <div className="space-y-3">
-                  <h3 className="text-3xl font-sans font-extrabold text-slate-950 tracking-tight">
-                    {flashcardWords[currentCardIndex].word}
-                  </h3>
-                  <span className="text-xs font-mono text-slate-400 lowercase italic">
-                    ({flashcardWords[currentCardIndex].partOfSpeech})
-                  </span>
-                  <div className="text-[10px] text-slate-400 bg-slate-50 px-2 py-0.5 rounded-full inline-block">
-                    Chủ đề: {flashcardWords[currentCardIndex].category}
+                    <div className="space-y-3">
+                      <h3 className="text-3xl font-sans font-extrabold text-slate-950 tracking-tight">
+                        {activeWord.word}
+                      </h3>
+                      <span className="text-xs font-mono text-slate-400 lowercase italic">
+                        ({activeWord.partOfSpeech})
+                      </span>
+                      <div className="text-[10px] text-slate-400 bg-slate-50 px-2 py-0.5 rounded-full inline-block">
+                        Chủ đề: {activeWord.category}
+                      </div>
+                    </div>
+
+                    <div className="text-xs text-slate-400 font-sans flex items-center gap-1.5 bg-slate-50 px-3 py-1.5 rounded-full">
+                      <RotateCw className="h-3.5 w-3.5 animate-spin-slow" />
+                      <span>Bấm vào thẻ để xem nghĩa & ví dụ</span>
+                    </div>
                   </div>
-                </div>
 
-                <div className="text-xs text-slate-400 font-sans flex items-center gap-1.5 bg-slate-50 px-3 py-1.5 rounded-full">
-                  <RotateCw className="h-3.5 w-3.5 animate-spin-slow" />
-                  <span>Bấm vào thẻ để xem nghĩa & ví dụ</span>
+                  {/* Card BACK */}
+                  <div className="absolute inset-0 backface-hidden rotate-y-180 bg-slate-900 border border-slate-800 text-white rounded-3xl p-6 shadow-md flex flex-col justify-between">
+                    <div className="flex justify-between items-center text-[9px] font-mono text-emerald-400 font-bold">
+                      <span>NGHĨA TIẾNG VIỆT & NGỮ CẢNH</span>
+                      <span>CARD BACK</span>
+                    </div>
+
+                    <div className="space-y-3 text-center md:text-left">
+                      <div className="bg-emerald-950/80 p-3 rounded-xl border border-emerald-900/50">
+                        <span className="text-[9px] font-bold text-emerald-400 block text-left">ĐỊNH NGHĨA VIỆT:</span>
+                        <p className="text-sm font-sans font-bold text-emerald-100 text-left mt-0.5">
+                          {activeWord.vietnameseTranslation || activeWord.vietnameseMeaning}
+                        </p>
+                      </div>
+
+                      <p className="text-xs text-slate-300 leading-relaxed text-left line-clamp-3">
+                        {activeWord.definition}
+                      </p>
+                    </div>
+
+                    <div className="border-t border-slate-800 pt-3 space-y-1.5 text-left">
+                      <span className="text-[9px] font-mono text-slate-500">MẪU VÍ DỤ:</span>
+                      <p className="text-xs text-slate-200 italic font-sans leading-relaxed">
+                        "{activeWord.exampleSentence || activeWord.marketingExample}"
+                      </p>
+                    </div>
+                  </div>
+
                 </div>
               </div>
 
-              {/* Card BACK */}
-              <div className="absolute inset-0 backface-hidden rotate-y-180 bg-slate-900 border border-slate-800 text-white rounded-3xl p-6 shadow-md flex flex-col justify-between">
-                <div className="flex justify-between items-center text-[9px] font-mono text-emerald-400 font-bold">
-                  <span>NGHĨA TIẾNG VIỆT & NGỮ CẢNH</span>
-                  <span>CARD BACK</span>
+              {/* Flashcard navigation and action buttons */}
+              <div className="flex items-center justify-between gap-4">
+                <button
+                  onClick={handlePrevCard}
+                  className="p-3 border border-slate-200 text-slate-600 hover:bg-slate-50 rounded-full transition-all cursor-pointer"
+                  title="Thẻ trước"
+                >
+                  <ChevronLeft className="h-5 w-5" />
+                </button>
+
+                {/* Quick rating for this card */}
+                <div className="flex gap-2.5">
+                  <button
+                    onClick={() => markCardStatus(activeWord.id, 'failed')}
+                    className="px-4 py-2.5 bg-red-50 hover:bg-red-100 text-red-700 border border-red-100 text-xs font-bold font-sans rounded-xl transition-all cursor-pointer"
+                  >
+                    😅 Chưa nhớ lắm
+                  </button>
+                  <button
+                    onClick={() => markCardStatus(activeWord.id, 'mastered')}
+                    className="px-4 py-2.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-100 text-xs font-bold font-sans rounded-xl transition-all cursor-pointer"
+                  >
+                    🔥 Đã thuộc lòng
+                  </button>
                 </div>
 
-                <div className="space-y-3 text-center md:text-left">
-                  <div className="bg-emerald-950/80 p-3 rounded-xl border border-emerald-900/50">
-                    <span className="text-[9px] font-bold text-emerald-400 block text-left">ĐỊNH NGHĨA VIỆT:</span>
-                    <p className="text-sm font-sans font-bold text-emerald-100 text-left mt-0.5">
-                      {flashcardWords[currentCardIndex].vietnameseTranslation}
-                    </p>
-                  </div>
-
-                  <p className="text-xs text-slate-300 leading-relaxed text-left line-clamp-3">
-                    {flashcardWords[currentCardIndex].definition}
-                  </p>
-                </div>
-
-                <div className="border-t border-slate-800 pt-3 space-y-1.5 text-left">
-                  <span className="text-[9px] font-mono text-slate-500">MẪU VÍ DỤ:</span>
-                  <p className="text-xs text-slate-200 italic font-sans leading-relaxed">
-                    "{flashcardWords[currentCardIndex].exampleSentence}"
-                  </p>
-                </div>
+                <button
+                  onClick={handleNextCard}
+                  className="p-3 border border-slate-200 text-slate-600 hover:bg-slate-50 rounded-full transition-all cursor-pointer"
+                  title="Thẻ tiếp"
+                >
+                  <ChevronRight className="h-5 w-5" />
+                </button>
               </div>
 
-            </div>
-          </div>
-
-          {/* Flashcard navigation and action buttons */}
-          <div className="flex items-center justify-between gap-4">
-            <button
-              onClick={handlePrevCard}
-              className="p-3 border border-slate-200 text-slate-600 hover:bg-slate-50 rounded-full transition-all cursor-pointer"
-              title="Thẻ trước"
-            >
-              <ChevronLeft className="h-5 w-5" />
-            </button>
-
-            {/* Quick rating for this card */}
-            <div className="flex gap-2.5">
-              <button
-                onClick={() => markCardStatus(flashcardWords[currentCardIndex].id, 'failed')}
-                className="px-4 py-2.5 bg-red-50 hover:bg-red-100 text-red-700 border border-red-100 text-xs font-bold font-sans rounded-xl transition-all cursor-pointer"
-              >
-                😅 Chưa nhớ lắm
-              </button>
-              <button
-                onClick={() => markCardStatus(flashcardWords[currentCardIndex].id, 'mastered')}
-                className="px-4 py-2.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-100 text-xs font-bold font-sans rounded-xl transition-all cursor-pointer"
-              >
-                🔥 Đã thuộc lòng
-              </button>
-            </div>
-
-            <button
-              onClick={handleNextCard}
-              className="p-3 border border-slate-200 text-slate-600 hover:bg-slate-50 rounded-full transition-all cursor-pointer"
-              title="Thẻ tiếp"
-            >
-              <ChevronRight className="h-5 w-5" />
-            </button>
-          </div>
-
-          {/* Stats bar */}
-          <div className="text-center text-xs text-slate-400 font-sans">
-            Mẹo: Ôn tập ít nhất 3 thẻ mỗi ngày để duy trì streak học tập!
-          </div>
+              {/* Stats bar */}
+              <div className="text-center text-xs text-slate-400 font-sans">
+                Mẹo: Ôn tập ít nhất 3 thẻ mỗi ngày để duy trì streak học tập!
+              </div>
+            </>
+          )}
         </div>
       )}
+
 
       {/* 2. SCENARIO CHALLENGES */}
       {reviewMode === 'scenarios' && (

@@ -328,6 +328,7 @@ export default function LessonWorkspaceView({
       if (!isDifferent) return prev;
 
       const updatedResponse: LessonResponse = {
+        ...currentSaved,
         id: currentSaved.id || `${lessonId}_res`,
         lessonId,
         practiceAnswers,
