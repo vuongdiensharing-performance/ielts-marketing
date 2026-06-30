@@ -1,0 +1,51 @@
+MARKETING ENGLISH LAB
+PROPRIETARY SOURCE LICENSE
+
+Copyright (c) 2026 Vương Điền / vuongdiensharing-performance.
+All rights reserved.
+
+1. Scope
+
+This license applies to the Marketing English Lab source code, application logic, original learning content, vocabulary packs, lesson structures, interface design, documentation, media created for the project, and related materials in this repository (collectively, the “Project Materials”).
+
+2. No Open-Source Grant
+
+This repository is source-available for inspection only. It is not released under an open-source license.
+
+Except where the copyright holder gives prior written permission, no license or other right is granted to:
+
+- copy, reproduce, download for reuse, or create derivative works from the Project Materials;
+- modify, translate, adapt, reverse engineer, decompile, or disassemble the Project Materials;
+- distribute, publish, sublicense, sell, rent, lease, host, or otherwise make the Project Materials available to any third party;
+- use the Project Materials, in whole or in part, in a commercial product, service, course, client deliverable, dataset, benchmark, model-training workflow, or competing product;
+- remove or alter copyright, attribution, ownership, or proprietary notices.
+
+3. Permitted Access
+
+Viewing this repository through GitHub or using an authorized deployed instance does not transfer ownership or grant permission to reuse, copy, modify, distribute, or commercialize the Project Materials.
+
+4. Permission Requests
+
+Any request to use, license, collaborate on, reproduce, adapt, integrate, or redistribute any Project Materials must receive prior written approval from the copyright holder.
+
+5. Third-Party Components
+
+Third-party packages, frameworks, fonts, services, and other external components included or referenced by this project remain subject to their own applicable licenses and terms. This license applies only to the original Project Materials owned by the copyright holder.
+
+6. Trademarks and Branding
+
+“Marketing English Lab”, associated names, visual identity, product positioning, and related branding may not be used to imply sponsorship, endorsement, affiliation, or permission without prior written approval.
+
+7. No Warranty
+
+THE PROJECT MATERIALS ARE PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, ACCURACY, AVAILABILITY, OR SECURITY.
+
+8. Limitation of Liability
+
+TO THE MAXIMUM EXTENT PERMITTED BY APPLICABLE LAW, THE COPYRIGHT HOLDER SHALL NOT BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, CONSEQUENTIAL, OR OTHER DAMAGES ARISING FROM OR RELATED TO ACCESS TO, USE OF, OR INABILITY TO USE THE PROJECT MATERIALS.
+
+9. Governing Terms
+
+Any dispute relating to the Project Materials will be handled under the applicable law and jurisdiction selected by the copyright holder, subject to mandatory legal requirements.
+
+For licensing or collaboration inquiries, contact the repository owner through the official GitHub account or a separately authorized contact channel.
