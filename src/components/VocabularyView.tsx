@@ -36,7 +36,7 @@ const pages = (current: number, total: number): PageToken[] => {
 };
 
 export default function VocabularyView({ userProgress, onUpdateProgress }: VocabularyViewProps) {
-  const { speak, previewEnglishVoice, englishVoices, vietnameseVoices, settings, updateSettings, activeEnglishVoice } =
+  const { speak, previewEnglishVoice, englishVoices, vietnameseVoices, settings, updateSettings, voicesLoaded, activeEnglishVoice } =
     useSpeech(userProgress.speechSettings, (updater) => onUpdateProgress((prev) => ({ ...prev, speechSettings: updater(prev.speechSettings) })));
 
   const [query, setQuery] = useState('');
@@ -100,6 +100,11 @@ export default function VocabularyView({ userProgress, onUpdateProgress }: Vocab
   const pageTokens = pages(current, totalPages);
   const disabledFirst = current <= 1;
   const disabledLast = !current || current >= totalPages;
+  const englishVoiceOptions = englishVoices.length ? englishVoices : activeEnglishVoice ? [activeEnglishVoice] : [];
+  const activeEnglishOptionValue = englishVoiceOptions.some((voice) => voice.name === settings.selectedEnglishVoiceName)
+    ? settings.selectedEnglishVoiceName
+    : activeEnglishVoice?.name || settings.selectedEnglishVoiceName;
+  const isEnglishFallback = Boolean(activeEnglishVoice && activeEnglishVoice.name !== settings.selectedEnglishVoiceName);
 
   const filters = (
     <div className="grid grid-cols-1 gap-3 rounded-2xl border border-slate-100 bg-white p-4 md:grid-cols-3 xl:grid-cols-6">
@@ -130,14 +135,29 @@ export default function VocabularyView({ userProgress, onUpdateProgress }: Vocab
   );
 
   return <div className="mx-auto max-w-5xl space-y-6 p-1 lg:p-4 animate-fade-in">
-    <div className="space-y-3 rounded-2xl border border-slate-100 bg-white p-4 text-xs text-slate-600">
+    <div className="space-y-4 rounded-2xl border border-slate-100 bg-white p-4 text-xs text-slate-600">
       <span className="flex items-center gap-2 font-bold"><Settings className="h-4 w-4" /> Voice Settings</span>
       <div className="flex flex-wrap items-center gap-4">
-        <label>Voice đọc tiếng Anh <select value={settings.selectedEnglishVoiceName} onChange={(event) => updateSettings({ ...settings, selectedEnglishVoiceName: event.target.value })} className="ml-2 rounded-lg border border-slate-200 p-1">{(englishVoices.length ? englishVoices : activeEnglishVoice ? [activeEnglishVoice] : []).map((voice) => <option key={voice.name} value={voice.name}>{voice.name}</option>)}</select></label>
-        <label>Giọng đọc tiếng Việt <select value={settings.selectedVietnameseVoiceName} onChange={(event) => updateSettings({ ...settings, selectedVietnameseVoiceName: event.target.value })} className="ml-2 rounded-lg border border-slate-200 p-1">{vietnameseVoices.map((voice) => <option key={voice.name} value={voice.name}>{voice.name}</option>)}</select></label>
+        <label className="flex items-center gap-2">Voice đọc tiếng Anh
+          <select value={activeEnglishOptionValue} onChange={(event) => updateSettings({ ...settings, selectedEnglishVoiceName: event.target.value })} className="rounded-lg border border-slate-200 p-1">
+            {englishVoiceOptions.map((voice) => <option key={voice.name} value={voice.name}>{voice.name}</option>)}
+            {!englishVoiceOptions.length && <option value={settings.selectedEnglishVoiceName}>Chưa phát hiện giọng tiếng Anh</option>}
+          </select>
+        </label>
+        <label className="flex items-center gap-2">Giọng đọc tiếng Việt
+          <select value={settings.selectedVietnameseVoiceName} onChange={(event) => updateSettings({ ...settings, selectedVietnameseVoiceName: event.target.value })} className="rounded-lg border border-slate-200 p-1">
+            {vietnameseVoices.map((voice) => <option key={voice.name} value={voice.name}>{voice.name}</option>)}
+            {!vietnameseVoices.length && <option value={settings.selectedVietnameseVoiceName}>Chưa phát hiện giọng tiếng Việt</option>}
+          </select>
+        </label>
       </div>
+      <p className="text-slate-500">Current voice: {activeEnglishVoice?.name || 'Đang chờ trình duyệt tải voice'}</p>
       <div className="flex flex-wrap items-center gap-2"><span>Tốc độ</span>{[0.9, 1.1, 1.3, 1.5, 1.7].map((rate) => <button key={rate} onClick={() => updateSettings({ ...settings, speechRatePreset: rate })} className={`rounded px-2 py-1 ${settings.speechRatePreset === rate ? 'bg-emerald-100 text-emerald-800' : 'bg-slate-100'}`}>{rate === 0.9 ? 'Rõ từng từ' : rate === 1.1 ? 'Học chuẩn' : rate === 1.3 ? 'Tự nhiên' : rate === 1.5 ? 'Nhanh' : 'Rất nhanh'} · {rate}x</button>)}</div>
-      <button onClick={() => previewEnglishVoice('Hi team, I am testing two new creatives for the TikTok campaign.')} className="text-emerald-700 underline">Nghe thử giọng</button>
+      <div className="flex flex-wrap gap-3">
+        <button onClick={() => previewEnglishVoice('Hi team, I am testing two new creatives for the TikTok campaign.')} className="text-emerald-700 underline">Nghe thử giọng</button>
+        <button onClick={() => updateSettings({ selectedEnglishVoiceName: 'Google US English', selectedVietnameseVoiceName: 'Linh', speechRatePreset: 1.1 })} className="text-emerald-700 underline">Khôi phục đề xuất</button>
+      </div>
+      {isEnglishFallback && <p className="text-amber-700">Google US English chưa có trên thiết bị này. Ứng dụng đang dùng giọng tiếng Anh gần nhất: {activeEnglishVoice?.name}</p>}
     </div>
 
     {import.meta.env.DEV && <div className="rounded-xl border border-slate-800 bg-slate-900 p-4 text-xs font-mono text-slate-300">
@@ -145,6 +165,7 @@ export default function VocabularyView({ userProgress, onUpdateProgress }: Vocab
       <p>Total: {counts.total} · Marketing: {counts.marketing} · Family Life: {counts.family}</p>
       <p>Filtered: {filtered.length} · Page size: {size} · Current page: {current} · Total pages: {totalPages} · Displayed: {start}–{end}</p>
       <p>Duplicate IDs: {audit.duplicateIds} · Duplicate keyword + track: {audit.duplicateKeywords} · Missing IPA: {audit.missingIpa} · Missing Vietnamese: {audit.missingVietnamese} · Missing topic: {audit.missingTopic} · Missing level: {audit.missingLevel}</p>
+      <p className="mt-2 text-slate-500">Voices loaded: {voicesLoaded ? 'Yes' : 'No'} · Active English: {activeEnglishVoice?.name || 'None'} · Selected English: {settings.selectedEnglishVoiceName} · Rate: {settings.speechRatePreset}x</p>
     </div>}
 
     <div className="border-b border-slate-100 pb-5"><h2 className="text-2xl font-bold tracking-tight text-slate-950">Từ vựng (Vocabulary)</h2><p className="mt-1 text-sm text-slate-500">Tra cứu, phát âm và lưu trữ thuật ngữ Marketing & Family Life.</p><div className="mt-3 flex flex-wrap gap-2 text-xs"><span className="rounded-full bg-slate-100 px-3 py-1">Tổng: <strong>{counts.total}</strong></span><span className="rounded-full bg-blue-50 px-3 py-1 text-blue-700">Marketing & Work: <strong>{counts.marketing}</strong></span><span className="rounded-full bg-purple-50 px-3 py-1 text-purple-700">Family Life: <strong>{counts.family}</strong></span></div></div>
