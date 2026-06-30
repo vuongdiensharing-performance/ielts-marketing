@@ -4,6 +4,7 @@ import { UserProgress, VocabularyItem } from '../types';
 import { SEED_VOCABULARY } from '../data/seedData';
 import { VOCABULARY_PACK_1C } from '../data/vocabularyPack1C';
 import { FAMILY_LIFE_PACK_1 } from '../data/familyLifePack1';
+import { MARKETING_PACK_1D } from '../data/marketingPack1D';
 import VocabularyDetailDrawer from './VocabularyDetailDrawer';
 import { useSpeech } from '../hooks/useSpeech';
 
@@ -50,7 +51,7 @@ export default function VocabularyView({ userProgress, onUpdateProgress }: Vocab
   const [size, setSize] = useState<20 | 50>(20);
   const [page, setPage] = useState(1);
 
-  const vocabulary = useMemo(() => [...SEED_VOCABULARY, ...VOCABULARY_PACK_1C, ...FAMILY_LIFE_PACK_1].map(normalized), []);
+  const vocabulary = useMemo(() => [...SEED_VOCABULARY, ...VOCABULARY_PACK_1C, ...FAMILY_LIFE_PACK_1, ...MARKETING_PACK_1D].map(normalized), []);
   const categories = useMemo(() => ['All', ...Array.from(new Set(vocabulary.map((item) => item.category))).sort()], [vocabulary]);
   const filtered = useMemo(() => {
     const term = query.trim().toLowerCase();
