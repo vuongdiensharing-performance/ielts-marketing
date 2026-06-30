@@ -1953,3 +1953,89 @@ export const SENTENCE_FORMULAS: SentenceFormula[] = [
     }
   }
 ];
+
+export interface PracticeQuestion {
+  id: string;
+  context: 'marketing' | 'family' | 'ielts';
+  targetFormulaId: string;
+  level: 'A1' | 'A2' | 'B1' | 'B2';
+  questionType: 'formula' | 'connector' | 'incorrect' | 'reorder' | 'transform';
+  prompt: string;
+  options?: string[];
+  correctAnswer: string;
+  explanationVi: string;
+  wrongExplanationVi?: string;
+}
+
+export interface ErrorItem {
+  id: string;
+  level: 'A1' | 'A2' | 'B1' | 'B2';
+  context: 'marketing' | 'family' | 'ielts';
+  incorrectSentence: string;
+  correctedSentence: string;
+  explanationVi: string;
+  formulaId: string;
+  category: string;
+  rememberRule: string;
+}
+
+export interface ApplyItContext {
+  id: string;
+  title: string;
+  scenarioPrompt: string;
+  level: 'A1' | 'A2' | 'B1' | 'B2';
+  requiredFormulaIds: string[];
+}
+
+export const PRACTICE_QUESTIONS: PracticeQuestion[] = [
+  { id: 'p1', context: 'marketing', targetFormulaId: 'f1', level: 'A1', questionType: 'formula', prompt: 'Choose the correct formula: The campaign ______.', options: ['is under budget', 'are under budget', 'be under budget'], correctAnswer: 'is under budget', explanationVi: 'Chiến dịch (số ít) cần "is".' },
+  { id: 'p2', context: 'marketing', targetFormulaId: 'f2', level: 'A1', questionType: 'connector', prompt: 'The copywriter ______ engaging copy.', options: ['writes', 'write', 'writing'], correctAnswer: 'writes', explanationVi: 'Chủ ngữ số ít cần thêm s/es.' },
+  { id: 'p3', context: 'marketing', targetFormulaId: 'f3', level: 'A1', questionType: 'formula', prompt: 'There ______ three active ad sets.', options: ['is', 'are'], correctAnswer: 'are', explanationVi: 'Danh từ số nhiều dùng "are".' },
+  { id: 'p4', context: 'marketing', targetFormulaId: 'f5', level: 'A1', questionType: 'transform', prompt: 'We need launch the campaign -> ?', correctAnswer: 'We need to launch the campaign.', explanationVi: 'Cần thêm giới từ "to" sau need.' },
+  { id: 'p5', context: 'marketing', targetFormulaId: 'f9', level: 'A2', questionType: 'reorder', prompt: 'planning / Our team / is / the budget / .', correctAnswer: 'Our team is planning the budget.', explanationVi: 'Sắp xếp theo thứ tự S+V-ing+O.' },
+  { id: 'p6', context: 'marketing', targetFormulaId: 'f10', level: 'A2', questionType: 'incorrect', prompt: 'Yesterday, we optimize the campaign.', correctAnswer: 'Yesterday, we optimized the campaign.', explanationVi: 'Hành động quá khứ thêm -ed.' },
+  { id: 'p7', context: 'marketing', targetFormulaId: 'f11', level: 'A2', questionType: 'formula', prompt: 'We ______ update the dashboard tomorrow.', options: ['will', 'to will', 'wills'], correctAnswer: 'will', explanationVi: 'Sau will dùng động từ nguyên thể.' },
+  { id: 'p8', context: 'marketing', targetFormulaId: 'f14', level: 'A2', questionType: 'connector', prompt: 'The new ad is ______ than the old one.', options: ['more effective', 'most effective', 'effectiveness'], correctAnswer: 'more effective', explanationVi: 'So sánh hơn dùng more + adj.' },
+  { id: 'p9', context: 'family', targetFormulaId: 'f1', level: 'A1', questionType: 'formula', prompt: 'The dinner ______ ready.', options: ['is', 'are'], correctAnswer: 'is', explanationVi: 'Dinner số ít.' },
+  { id: 'p10', context: 'family', targetFormulaId: 'f2', level: 'A1', questionType: 'connector', prompt: 'My wife ______ the kitchen.', options: ['cleans', 'clean', 'cleaning'], correctAnswer: 'cleans', explanationVi: 'Chủ ngữ số ít.' },
+  { id: 'p11', context: 'family', targetFormulaId: 'f3', level: 'A1', questionType: 'formula', prompt: 'There ______ some fruit.', options: ['is', 'are'], correctAnswer: 'is', explanationVi: 'Danh từ không đếm được dùng is.' },
+  { id: 'p12', context: 'family', targetFormulaId: 'f4', level: 'A1', questionType: 'transform', prompt: 'My son can do the dishes.', correctAnswer: 'My son can do the dishes.', explanationVi: 'Đúng.' },
+  { id: 'p13', context: 'family', targetFormulaId: 'f9', level: 'A2', questionType: 'reorder', prompt: 'cleaning / is / my daughter / her bedroom / .', correctAnswer: 'My daughter is cleaning her bedroom.', explanationVi: 'Sắp xếp S+V-ing+O.' },
+  { id: 'p14', context: 'family', targetFormulaId: 'f10', level: 'A2', questionType: 'incorrect', prompt: 'We clean the house last Sunday.', correctAnswer: 'We cleaned the house last Sunday.', explanationVi: 'Quá khứ thêm -ed.' },
+  { id: 'p15', context: 'family', targetFormulaId: 'f11', level: 'A2', questionType: 'formula', prompt: 'I ______ do the laundry.', options: ['will', 'to will'], correctAnswer: 'will', explanationVi: 'Will + động từ nguyên thể.' },
+  { id: 'p16', context: 'family', targetFormulaId: 'f14', level: 'A2', questionType: 'connector', prompt: 'The new vacuum is ______ the old broom.', options: ['quieter than', 'more quieter than'], correctAnswer: 'quieter than', explanationVi: 'Tính từ ngắn thêm -er.' },
+  { id: 'p17', context: 'ielts', targetFormulaId: 'f1', level: 'A1', questionType: 'formula', prompt: 'Education ______ essential.', options: ['is', 'are'], correctAnswer: 'is', explanationVi: 'Education không đếm được.' },
+  { id: 'p18', context: 'ielts', targetFormulaId: 'f2', level: 'A1', questionType: 'connector', prompt: 'Many citizens ______ libraries.', options: ['prefer', 'prefers'], correctAnswer: 'prefer', explanationVi: 'Citizens số nhiều.' },
+  { id: 'p19', context: 'ielts', targetFormulaId: 'f3', level: 'A1', questionType: 'formula', prompt: 'There ______ many benefits.', options: ['is', 'are'], correctAnswer: 'are', explanationVi: 'Danh từ số nhiều.' },
+  { id: 'p20', context: 'ielts', targetFormulaId: 'f4', level: 'A1', questionType: 'transform', prompt: 'Students can learn skills.', correctAnswer: 'Students can learn skills.', explanationVi: 'Đúng.' },
+  { id: 'p21', context: 'ielts', targetFormulaId: 'f9', level: 'A2', questionType: 'reorder', prompt: 'are / to / Consumers / digital / turning / platforms / .', correctAnswer: 'Consumers are turning to digital platforms.', explanationVi: 'Sắp xếp S+V-ing+O.' },
+  { id: 'p22', context: 'ielts', targetFormulaId: 'f10', level: 'A2', questionType: 'incorrect', prompt: 'The government introduce taxes.', correctAnswer: 'The government introduced taxes.', explanationVi: 'Quá khứ.' },
+  { id: 'p23', context: 'ielts', targetFormulaId: 'f11', level: 'A2', questionType: 'formula', prompt: 'Automation ______ opportunities.', options: ['will create', 'to will create'], correctAnswer: 'will create', explanationVi: 'Will + v.' },
+  { id: 'p24', context: 'ielts', targetFormulaId: 'f14', level: 'A2', questionType: 'connector', prompt: 'Online learning is ______ traditional.', options: ['more flexible than', 'more flexible'], correctAnswer: 'more flexible than', explanationVi: 'Cần có than.' }
+];
+
+export const ERROR_CLINIC_ITEMS: ErrorItem[] = [
+  { id: 'e1', level: 'A1', context: 'marketing', incorrectSentence: 'The product effective.', correctedSentence: 'The product is effective.', explanationVi: 'Thiếu động từ To Be.', formulaId: 'f1', category: 'missing be', rememberRule: 'Always use To Be for adjectives.' },
+  { id: 'e2', level: 'A1', context: 'family', incorrectSentence: 'They cleans the house.', correctedSentence: 'They clean the house.', explanationVi: 'They là số nhiều, không thêm s.', formulaId: 'f2', category: 'S-V mismatch', rememberRule: 'Only He/She/It adds -s/-es.' },
+  { id: 'e3', level: 'A1', context: 'ielts', incorrectSentence: 'Does he writes the draft?', correctedSentence: 'Does he write the draft?', explanationVi: 'Đã dùng Does thì động từ chính nguyên thể.', formulaId: 'f6', category: 'wrong Do/Does', rememberRule: 'Does + Verb base form.' },
+  { id: 'e4', level: 'A1', context: 'marketing', incorrectSentence: 'To check the links.', correctedSentence: 'Check the links.', explanationVi: 'Câu mệnh lệnh bắt đầu bằng V-base, không có to.', formulaId: 'f8', category: 'incorrect imperative', rememberRule: 'Start command with V-base.' },
+  { id: 'e5', level: 'A2', context: 'marketing', incorrectSentence: 'The agency planning the strategy.', correctedSentence: 'The agency is planning the strategy.', explanationVi: 'Thiếu is.', formulaId: 'f9', category: 'incorrect present continuous', rememberRule: 'Sub + be + V-ing.' },
+  { id: 'e6', level: 'A2', context: 'family', incorrectSentence: 'Yesterday, we clean the house.', correctedSentence: 'Yesterday, we cleaned the house.', explanationVi: 'Quá khứ phải thêm -ed.', formulaId: 'f10', category: 'wrong past tense', rememberRule: 'Use -ed for past actions.' },
+  { id: 'e7', level: 'A2', context: 'ielts', incorrectSentence: 'Technology will to change the world.', correctedSentence: 'Technology will change the world.', explanationVi: 'Không có to sau will.', formulaId: 'f11', category: 'wrong future form', rememberRule: 'Will + V-base.' },
+  { id: 'e8', level: 'A2', context: 'marketing', incorrectSentence: 'The ad was effective because high engagement, so we got more leads.', correctedSentence: 'The ad was effective because of high engagement, so we got more leads.', explanationVi: 'Because of + cụm danh từ.', formulaId: 'f15', category: 'because/so misuse', rememberRule: 'Because + Clause; Because of + Noun Phrase.' },
+  { id: 'e9', level: 'B1', context: 'marketing', incorrectSentence: 'If we will optimize, we will increase sales.', correctedSentence: 'If we optimize, we will increase sales.', explanationVi: 'Câu điều kiện loại 1: vế if chia hiện tại.', formulaId: 'f26', category: 'will misuse', rememberRule: 'No "will" in if-clause.' },
+  { id: 'e10', level: 'B1', context: 'family', incorrectSentence: 'The dishes was washed by him.', correctedSentence: 'The dishes were washed by him.', explanationVi: 'Dishes số nhiều.', formulaId: 'f27', category: 'passive voice word order', rememberRule: 'Check passive subject number.' },
+  { id: 'e11', level: 'B1', context: 'ielts', incorrectSentence: 'The book, which I read it, was good.', correctedSentence: 'The book, which I read, was good.', explanationVi: 'Thừa tân ngữ "it".', formulaId: 'f28', category: 'relative clause misuse', rememberRule: 'Relative clause needs no extra object.' },
+  { id: 'e12', level: 'B1', context: 'marketing', incorrectSentence: 'However the budget is small, we launch it.', correctedSentence: 'Although the budget is small, we launch it.', explanationVi: 'Although dùng cho mệnh đề chỉ nhượng bộ.', formulaId: 'f29', category: 'although/however misuse', rememberRule: 'Although + Clause, However = ; however, .' },
+  { id: 'e13', level: 'B2', context: 'marketing', incorrectSentence: 'This definitely will increase sales.', correctedSentence: 'This might increase sales.', explanationVi: 'Hedging nhẹ nhàng hơn.', formulaId: 'f25', category: 'hedging form misuse', rememberRule: 'Use modals for softening.' },
+  { id: 'e14', level: 'B2', context: 'family', incorrectSentence: 'Despite it was raining, we went out.', correctedSentence: 'Although it was raining, we went out.', explanationVi: 'Despite + cụm danh từ.', formulaId: 'f30', category: 'despite/in spite of misuse', rememberRule: 'Despite + Noun Phrase / Although + Clause.' },
+  { id: 'e15', level: 'B2', context: 'ielts', incorrectSentence: 'If I had more time, I will study.', correctedSentence: 'If I had more time, I would study.', explanationVi: 'Câu điều kiện loại 2.', formulaId: 'f31', category: 'second conditional misuse', rememberRule: 'If + V-ed, ... would + V-base.' },
+  { id: 'e16', level: 'B2', context: 'marketing', incorrectSentence: 'Budget is small, we have no results.', correctedSentence: 'Because the budget is small, we have no results.', explanationVi: 'Thiếu từ nối.', formulaId: 'f32', category: 'weak cause-result', rememberRule: 'Use connectors for structure.' }
+];
+
+export const APPLY_IT_CONTEXTS: ApplyItContext[] = [
+  { id: 'a1', title: 'Marketing update', scenarioPrompt: 'Write a 3-sentence update on campaign performance.', level: 'B1', requiredFormulaIds: ['f17', 'f26'] },
+  { id: 'a2', title: 'Family coordination', scenarioPrompt: 'Write a 3-sentence plan for family chores.', level: 'A2', requiredFormulaIds: ['f16', 'f12'] },
+  { id: 'a3', title: 'IELTS opinion', scenarioPrompt: 'Write a 3-sentence opinion on technology.', level: 'B2', requiredFormulaIds: ['f25', 'f31'] }
+];
+

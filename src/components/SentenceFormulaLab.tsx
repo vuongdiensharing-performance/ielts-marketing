@@ -3,7 +3,10 @@ import { motion, AnimatePresence } from 'motion/react';
 import { 
   SENTENCE_FORMULAS, 
   SentenceFormula, 
-  FormulaSlot 
+  FormulaSlot,
+  PRACTICE_QUESTIONS,
+  ERROR_CLINIC_ITEMS,
+  APPLY_IT_CONTEXTS
 } from '../data/sentenceFormulaData';
 import { 
   BookOpen, 
@@ -22,12 +25,74 @@ import {
   ArrowRight,
   Sparkles,
   ChevronRight,
-  HelpCircle
+  HelpCircle,
+  X
 } from 'lucide-react';
 
+function PracticeView() {
+  const [score, setScore] = useState(0);
+  const [index, setIndex] = useState(0);
+  const [feedback, setFeedback] = useState<string | null>(null);
+
+  const q = PRACTICE_QUESTIONS[index];
+  
+  const handleCheck = (ans: string) => {
+    if (ans === q.correctAnswer) {
+      setScore(score + 1);
+      setFeedback('Correct!');
+    } else {
+      setFeedback(`Incorrect. ${q.explanationVi}`);
+    }
+  };
+
+  return (
+    <div className="space-y-4">
+      <h3 className="text-lg font-bold">Controlled Practice ({index + 1} of {PRACTICE_QUESTIONS.length})</h3>
+      <p>{q.prompt}</p>
+      {q.options && q.options.map(o => (
+        <button key={o} onClick={() => handleCheck(o)} className="block p-2 border rounded">{o}</button>
+      ))}
+      {feedback && <p className="font-bold">{feedback}</p>}
+      <button onClick={() => {setIndex((index + 1) % PRACTICE_QUESTIONS.length); setFeedback(null);}} className="p-2 bg-blue-500 text-white rounded">Next</button>
+      <p>Score: {score}</p>
+    </div>
+  );
+}
+
+function ClinicView() {
+  return (
+    <div className="space-y-4">
+      <h3 className="text-lg font-bold">Error Clinic</h3>
+      {ERROR_CLINIC_ITEMS.map(e => (
+        <div key={e.id} className="p-4 border rounded">
+          <p className="line-through">{e.incorrectSentence}</p>
+          <p className="font-bold">{e.correctedSentence}</p>
+          <p>{e.explanationVi}</p>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function ApplyItView() {
+  return (
+    <div className="space-y-4">
+      <h3 className="text-lg font-bold">Apply It</h3>
+      {APPLY_IT_CONTEXTS.map(a => (
+        <div key={a.id} className="p-4 border rounded">
+          <h4 className="font-bold">{a.title}</h4>
+          <p>{a.scenarioPrompt}</p>
+          <textarea className="w-full h-24 border rounded" />
+        </div>
+      ))}
+      <p className="text-xs">“This is a formula self-check tool. It does not evaluate writing quality, grammar quality, or IELTS level.”</p>
+    </div>
+  );
+}
+
 export default function SentenceFormulaLab() {
-  // Tabs: 'library' | 'builder'
-  const [activeSubTab, setActiveSubTab] = useState<'library' | 'builder'>('library');
+  // Tabs: 'library' | 'builder' | 'practice' | 'clinic' | 'apply'
+  const [activeSubTab, setActiveSubTab] = useState<'library' | 'builder' | 'practice' | 'clinic' | 'apply'>('library');
   
   // Library Level Filter: 'ALL' | 'A1' | 'A2' | 'B1' | 'B2'
   const [selectedLevel, setSelectedLevel] = useState<'ALL' | 'A1' | 'A2' | 'B1' | 'B2'>('ALL');
@@ -217,27 +282,63 @@ export default function SentenceFormulaLab() {
         <div className="flex bg-slate-100 p-1 rounded-xl w-full sm:w-auto" id="subtab-switcher">
           <button
             onClick={() => setActiveSubTab('library')}
-            className={`flex-1 sm:flex-none flex items-center justify-center gap-1.5 px-4 py-2 text-xs font-semibold rounded-lg transition-all ${
+            className={`flex-1 sm:flex-none flex items-center justify-center gap-1.5 px-3 py-2 text-[10px] font-semibold rounded-lg transition-all ${
               activeSubTab === 'library'
                 ? 'bg-white text-slate-900 shadow-sm'
                 : 'text-slate-500 hover:text-slate-900'
             }`}
             id="tab-btn-library"
           >
-            <Layers className="h-4 w-4" />
-            Thư viện Công thức
+            <Layers className="h-3.5 w-3.5" />
+            Library
           </button>
           <button
             onClick={() => setActiveSubTab('builder')}
-            className={`flex-1 sm:flex-none flex items-center justify-center gap-1.5 px-4 py-2 text-xs font-semibold rounded-lg transition-all ${
+            className={`flex-1 sm:flex-none flex items-center justify-center gap-1.5 px-3 py-2 text-[10px] font-semibold rounded-lg transition-all ${
               activeSubTab === 'builder'
                 ? 'bg-white text-slate-900 shadow-sm'
                 : 'text-slate-500 hover:text-slate-900'
             }`}
             id="tab-btn-builder"
           >
-            <PenTool className="h-4 w-4" />
-            Trình dựng câu (Builder)
+            <PenTool className="h-3.5 w-3.5" />
+            Builder
+          </button>
+          <button
+            onClick={() => setActiveSubTab('practice')}
+            className={`flex-1 sm:flex-none flex items-center justify-center gap-1.5 px-3 py-2 text-[10px] font-semibold rounded-lg transition-all ${
+              activeSubTab === 'practice'
+                ? 'bg-white text-slate-900 shadow-sm'
+                : 'text-slate-500 hover:text-slate-900'
+            }`}
+            id="tab-btn-practice"
+          >
+            <CheckCircle2 className="h-3.5 w-3.5" />
+            Practice
+          </button>
+          <button
+            onClick={() => setActiveSubTab('clinic')}
+            className={`flex-1 sm:flex-none flex items-center justify-center gap-1.5 px-3 py-2 text-[10px] font-semibold rounded-lg transition-all ${
+              activeSubTab === 'clinic'
+                ? 'bg-white text-slate-900 shadow-sm'
+                : 'text-slate-500 hover:text-slate-900'
+            }`}
+            id="tab-btn-clinic"
+          >
+            <AlertTriangle className="h-3.5 w-3.5" />
+            Clinic
+          </button>
+          <button
+            onClick={() => setActiveSubTab('apply')}
+            className={`flex-1 sm:flex-none flex items-center justify-center gap-1.5 px-3 py-2 text-[10px] font-semibold rounded-lg transition-all ${
+              activeSubTab === 'apply'
+                ? 'bg-white text-slate-900 shadow-sm'
+                : 'text-slate-500 hover:text-slate-900'
+            }`}
+            id="tab-btn-apply"
+          >
+            <Sparkles className="h-3.5 w-3.5" />
+            Apply
           </button>
         </div>
       </div>
