@@ -8,23 +8,34 @@ import {
   TrendingUp, 
   Menu, 
   X,
-  GraduationCap
+  GraduationCap,
+  Briefcase,
+  Home
 } from 'lucide-react';
 
 interface SidebarProps {
   currentTab: string;
   onTabChange: (tab: string) => void;
   streakDays: number;
+  currentContext: 'marketing' | 'family-life';
+  onContextChange: (context: 'marketing' | 'family-life') => void;
 }
 
-export default function Sidebar({ currentTab, onTabChange, streakDays }: SidebarProps) {
+export default function Sidebar({ 
+  currentTab, 
+  onTabChange, 
+  streakDays,
+  currentContext,
+  onContextChange
+}: SidebarProps) {
   const [isOpen, setIsOpen] = useState(false);
 
   const menuItems = [
     { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard, desc: 'Trang chủ học tập' },
     { id: 'roadmap', label: 'Roadmap', icon: Map, desc: 'Lộ trình bài học' },
     { id: 'skills', label: 'Skill Labs', icon: BookOpen, desc: 'Phòng luyện 4 kỹ năng' },
-    { id: 'vocabulary', label: 'Vocabulary', icon: Book, desc: 'Từ vựng & Mẫu câu' },
+    { id: 'vocabulary', label: 'Từ vựng', icon: Book, desc: 'Từ vựng & Mẫu câu' },
+    { id: 'structure', label: 'Cấu trúc', icon: BookOpen, desc: 'Ngữ âm & Ngữ pháp' },
     { id: 'review', label: 'Review', icon: Sparkles, desc: 'Ôn tập thông minh' },
     { id: 'analytics', label: 'Analytics', icon: TrendingUp, desc: 'Tiến độ & Phân tích' },
   ];
@@ -113,6 +124,49 @@ export default function Sidebar({ currentTab, onTabChange, streakDays }: Sidebar
                   💤 NO STREAK
                 </div>
               )}
+            </div>
+          </div>
+
+          {/* Practice Track Switcher */}
+          <div className="px-5 py-4 border-b border-slate-50 bg-slate-50/20">
+            <p className="text-[9px] text-slate-400 font-mono font-bold uppercase tracking-wider mb-2.5">
+              Practice Tracks (Chương trình học)
+            </p>
+            <div className="space-y-1.5">
+              <button
+                id="track-selector-marketing"
+                onClick={() => onContextChange('marketing')}
+                className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-left text-xs font-bold transition-all duration-200 cursor-pointer ${
+                  currentContext === 'marketing'
+                    ? 'bg-emerald-600 text-white shadow-xs'
+                    : 'bg-white border border-slate-100 text-slate-600 hover:bg-slate-50 hover:text-slate-950'
+                }`}
+              >
+                <div className="flex items-center gap-2">
+                  <Briefcase className="h-4 w-4 shrink-0" />
+                  <span>Marketing English</span>
+                </div>
+                <span className={`text-[9px] font-mono font-bold px-1.5 py-0.2 rounded-sm ${
+                  currentContext === 'marketing' ? 'bg-emerald-700 text-white' : 'bg-slate-100 text-slate-500'
+                }`}>A1-B2</span>
+              </button>
+              <button
+                id="track-selector-family"
+                onClick={() => onContextChange('family-life')}
+                className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-left text-xs font-bold transition-all duration-200 cursor-pointer ${
+                  currentContext === 'family-life'
+                    ? 'bg-sky-600 text-white shadow-xs'
+                    : 'bg-white border border-slate-100 text-slate-600 hover:bg-slate-50 hover:text-slate-950'
+                }`}
+              >
+                <div className="flex items-center gap-2">
+                  <Home className="h-4 w-4 shrink-0" />
+                  <span>Family Life Practice</span>
+                </div>
+                <span className={`text-[9px] font-mono font-bold px-1.5 py-0.2 rounded-sm ${
+                  currentContext === 'family-life' ? 'bg-sky-700 text-white' : 'bg-slate-100 text-slate-500'
+                }`}>A1</span>
+              </button>
             </div>
           </div>
 

@@ -23,6 +23,7 @@ interface ReviewViewProps {
 export default function ReviewView({ userProgress }: ReviewViewProps) {
   
   const [reviewMode, setReviewMode] = useState<'flashcards' | 'scenarios'>('flashcards');
+  const [filterCategory, setFilterCategory] = useState<'all' | 'marketing' | 'family-life'>('all');
 
   // Flashcards state
   const [currentCardIndex, setCurrentCardIndex] = useState(0);
@@ -35,9 +36,20 @@ export default function ReviewView({ userProgress }: ReviewViewProps) {
   const [scenarioFeedback, setScenarioFeedback] = useState<any>(null);
   const [scenarioSubmitted, setScenarioSubmitted] = useState(false);
 
+  // Filter vocabulary by category
+  const filteredVocabulary = SEED_VOCABULARY.filter(v => {
+    if (filterCategory === 'marketing') {
+      return !v.tags?.includes('family-life');
+    }
+    if (filterCategory === 'family-life') {
+      return v.tags?.includes('family-life');
+    }
+    return true;
+  });
+
   // List of words to review (prioritize starred, fall back to all if none are starred)
-  const bookmarkedWords = SEED_VOCABULARY.filter(v => userProgress.vocabBookmarks.includes(v.id));
-  const flashcardWords = bookmarkedWords.length > 0 ? bookmarkedWords : SEED_VOCABULARY;
+  const bookmarkedWords = filteredVocabulary.filter(v => userProgress.vocabBookmarks.includes(v.id));
+  const flashcardWords = bookmarkedWords.length > 0 ? bookmarkedWords : filteredVocabulary;
 
   const handleNextCard = () => {
     setIsFlipped(false);
@@ -62,6 +74,7 @@ export default function ReviewView({ userProgress }: ReviewViewProps) {
   const scenarios = [
     {
       id: 'sc_1',
+      category: 'marketing',
       sender: 'Client (Khách hàng)',
       message: '"We need to increase engagement with cool visuals immediately for our summer sales campaign."',
       messageVi: '"Chúng ta cần tăng tương tác bằng hình ảnh chất ngay lập tức cho chiến dịch bán hàng hè."',
@@ -71,19 +84,36 @@ export default function ReviewView({ userProgress }: ReviewViewProps) {
     },
     {
       id: 'sc_2',
+      category: 'marketing',
       sender: 'Marketing Manager (Sếp)',
       message: '"I need a quick Slack update on the TikTok summer campaign ad copy right now!"',
       messageVi: '"Anh cần một cập nhật nhanh trên Slack về văn bản quảng cáo chiến dịch hè trên TikTok ngay!"',
       coachingTip: "Sếp đang vội. Hãy dùng thì Hiện tại tiếp diễn (Present Continuous) kèm cấu trúc 'currently drafting' hoặc 'in the middle of' để sếp yên tâm bạn đang trực tiếp viết nội dung.",
       sampleKeywords: ['drafting', 'working on', 'copy', 'middle of', 'ad copy', 'in 15 minutes', 'minutes'],
       sampleOutput: "Hi! I'm currently drafting the TikTok ad copy variations and checking them against our creative brief. I should be able to send them over in about 15 minutes."
+    },
+    {
+      id: 'sc_3',
+      category: 'family-life',
+      sender: 'Partner (Vợ/Chồng)',
+      message: '"Tomorrow is going to be very busy. Can we coordinate our schedule for the morning?"',
+      messageVi: '"Ngày mai sẽ rất bận rộn. Chúng ta có thể phối hợp lịch trình cho buổi sáng được không?"',
+      coachingTip: "Khi phối hợp lịch trình buổi sáng bận rộn với bạn đời, hãy dùng các mẫu câu đề xuất nhẹ nhàng hoặc câu hỏi lịch sự như 'I will take the children...' và 'Could you help me with...' để tạo không khí gia đình ấm áp.",
+      sampleKeywords: ['laundry', 'take', 'cook', 'grocery', 'help me', 'will', 'could you', 'breakfast'],
+      sampleOutput: "Don't worry honey. Tomorrow morning, I will take the kids to school. Could you please help me buy some groceries on your way home?"
     }
   ];
 
-  const currentScenario = scenarios[currentScenarioIndex];
+  const filteredScenarios = scenarios.filter(s => {
+    if (filterCategory === 'marketing') return s.category === 'marketing';
+    if (filterCategory === 'family-life') return s.category === 'family-life';
+    return true;
+  });
+
+  const currentScenario = filteredScenarios[currentScenarioIndex] || filteredScenarios[0];
 
   const handleScenarioSubmit = () => {
-    if (!scenarioInput.trim()) return;
+    if (!scenarioInput.trim() || !currentScenario) return;
 
     // Evaluate input text
     const lowerInput = scenarioInput.toLowerCase();
@@ -106,7 +136,7 @@ export default function ReviewView({ userProgress }: ReviewViewProps) {
     setScenarioInput('');
     setScenarioFeedback(null);
     setScenarioSubmitted(false);
-    setCurrentScenarioIndex((prev) => (prev + 1) % scenarios.length);
+    setCurrentScenarioIndex((prev) => (prev + 1) % filteredScenarios.length);
   };
 
   return (
@@ -145,6 +175,53 @@ export default function ReviewView({ userProgress }: ReviewViewProps) {
         >
           <MessageSquare className="h-4 w-4" />
           <span>Luyện phản xạ tình huống</span>
+        </button>
+      </div>
+
+      {/* Category filter tabs */}
+      <div className="flex flex-wrap items-center gap-2 pb-3 border-b border-slate-100">
+        <span className="text-xs text-slate-400 font-sans font-medium mr-2">Bộ lọc chủ đề:</span>
+        <button
+          onClick={() => {
+            setFilterCategory('all');
+            setCurrentCardIndex(0);
+            setCurrentScenarioIndex(0);
+          }}
+          className={`px-3.5 py-1.5 rounded-full text-xs font-sans font-bold cursor-pointer transition-all ${
+            filterCategory === 'all'
+              ? 'bg-slate-950 text-white'
+              : 'bg-slate-50 text-slate-500 hover:bg-slate-100'
+          }`}
+        >
+          Tất cả từ & Tình huống
+        </button>
+        <button
+          onClick={() => {
+            setFilterCategory('marketing');
+            setCurrentCardIndex(0);
+            setCurrentScenarioIndex(0);
+          }}
+          className={`px-3.5 py-1.5 rounded-full text-xs font-sans font-bold cursor-pointer transition-all ${
+            filterCategory === 'marketing'
+              ? 'bg-emerald-600 text-white font-semibold'
+              : 'bg-slate-50 text-slate-500 hover:bg-slate-100'
+          }`}
+        >
+          Marketing English
+        </button>
+        <button
+          onClick={() => {
+            setFilterCategory('family-life');
+            setCurrentCardIndex(0);
+            setCurrentScenarioIndex(0);
+          }}
+          className={`px-3.5 py-1.5 rounded-full text-xs font-sans font-bold cursor-pointer transition-all ${
+            filterCategory === 'family-life'
+              ? 'bg-sky-600 text-white font-semibold'
+              : 'bg-slate-50 text-slate-500 hover:bg-slate-100'
+          }`}
+        >
+          Family Life Practice
         </button>
       </div>
 
@@ -273,7 +350,7 @@ export default function ReviewView({ userProgress }: ReviewViewProps) {
           <div className="bg-white border border-slate-100 p-5 rounded-2xl shadow-xs space-y-4">
             <div className="flex items-center justify-between">
               <span className="text-[10px] font-mono font-bold text-slate-400">
-                SCENARIO DRILL {currentScenarioIndex + 1} / {scenarios.length}
+                SCENARIO DRILL {currentScenarioIndex + 1} / {filteredScenarios.length}
               </span>
               <span className="flex items-center gap-1 text-[10px] font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full">
                 <BrainCircuit className="h-3 w-3 animate-pulse" /> Sẵn sàng phản xạ

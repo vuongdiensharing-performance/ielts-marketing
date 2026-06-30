@@ -31,6 +31,15 @@ export default function AnalyticsView({
   const totalLessonsCount = LESSONS.length;
   const overallProgress = totalLessonsCount > 0 ? Math.round((completedLessonsCount / totalLessonsCount) * 100) : 0;
   
+  const marketingLessons = LESSONS.filter(l => l.moduleId.startsWith('a1-m'));
+  const familyLessons = LESSONS.filter(l => l.moduleId.startsWith('a1-f'));
+
+  const completedMarketing = userProgress.completedLessons.filter(id => marketingLessons.some(l => l.id === id)).length;
+  const completedFamily = userProgress.completedLessons.filter(id => familyLessons.some(l => l.id === id)).length;
+
+  const marketingPercent = marketingLessons.length > 0 ? Math.round((completedMarketing / marketingLessons.length) * 100) : 0;
+  const familyPercent = familyLessons.length > 0 ? Math.round((completedFamily / familyLessons.length) * 100) : 0;
+
   const starredVocabCount = userProgress.vocabBookmarks.length;
   const starredFormulaCount = userProgress.formulaBookmarks.length;
 
@@ -74,25 +83,49 @@ export default function AnalyticsView({
       {/* Grid: Big Progress Metrics */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         {/* Total Progress Ring Card */}
-        <div className="bg-white border border-slate-100 p-6 rounded-3xl shadow-xs flex items-center justify-between gap-4">
-          <div className="space-y-1.5">
-            <span className="text-[10px] text-slate-400 font-mono font-bold uppercase block">ROADMAP PROGRESS</span>
-            <h4 className="text-xl font-bold font-sans text-slate-900">{overallProgress}% Hoàn thành</h4>
-            <p className="text-xs text-slate-400 font-sans">
-              Đã xong {completedLessonsCount} trên tổng số {totalLessonsCount} bài học.
-            </p>
+        <div className="bg-white border border-slate-100 p-6 rounded-3xl shadow-xs flex flex-col justify-between gap-4">
+          <div className="flex items-center justify-between gap-4 w-full">
+            <div className="space-y-1.5">
+              <span className="text-[10px] text-slate-400 font-mono font-bold uppercase block">ROADMAP PROGRESS</span>
+              <h4 className="text-xl font-bold font-sans text-slate-900">{overallProgress}% Hoàn thành</h4>
+              <p className="text-xs text-slate-400 font-sans">
+                Đã xong {completedLessonsCount}/{totalLessonsCount} bài học tổng.
+              </p>
+            </div>
+
+            {/* Simple Circular Progress with SVG */}
+            <div className="relative h-16 w-16 shrink-0 flex items-center justify-center">
+              <svg className="absolute transform -rotate-90 w-full h-full">
+                <circle cx="32" cy="32" r="28" stroke="#f1f5f9" strokeWidth="6" fill="transparent" />
+                <circle cx="32" cy="32" r="28" stroke="#059669" strokeWidth="6" fill="transparent" 
+                  strokeDasharray={`${2 * Math.PI * 28}`}
+                  strokeDashoffset={`${2 * Math.PI * 28 * (1 - overallProgress / 100)}`}
+                />
+              </svg>
+              <span className="text-xs font-bold font-sans text-emerald-700">{overallProgress}%</span>
+            </div>
           </div>
 
-          {/* Simple Circular Progress with SVG */}
-          <div className="relative h-16 w-16 shrink-0 flex items-center justify-center">
-            <svg className="absolute transform -rotate-90 w-full h-full">
-              <circle cx="32" cy="32" r="28" stroke="#f1f5f9" strokeWidth="6" fill="transparent" />
-              <circle cx="32" cy="32" r="28" stroke="#059669" strokeWidth="6" fill="transparent" 
-                strokeDasharray={`${2 * Math.PI * 28}`}
-                strokeDashoffset={`${2 * Math.PI * 28 * (1 - overallProgress / 100)}`}
-              />
-            </svg>
-            <span className="text-xs font-bold font-sans text-emerald-700">{overallProgress}%</span>
+          {/* Sub-track Progress Bars */}
+          <div className="border-t border-slate-100 pt-3.5 space-y-2.5 w-full text-[11px]">
+            <div>
+              <div className="flex justify-between font-sans text-slate-500 mb-1">
+                <span>💼 Marketing English:</span>
+                <span className="font-bold text-slate-700">{completedMarketing}/{marketingLessons.length}</span>
+              </div>
+              <div className="w-full bg-slate-100 h-1.5 rounded-full overflow-hidden">
+                <div className="bg-emerald-600 h-full rounded-full transition-all duration-500" style={{ width: `${marketingPercent}%` }} />
+              </div>
+            </div>
+            <div>
+              <div className="flex justify-between font-sans text-slate-500 mb-1">
+                <span>🏠 Family Life Practice:</span>
+                <span className="font-bold text-slate-700">{completedFamily}/{familyLessons.length}</span>
+              </div>
+              <div className="w-full bg-slate-100 h-1.5 rounded-full overflow-hidden">
+                <div className="bg-sky-500 h-full rounded-full transition-all duration-500" style={{ width: `${familyPercent}%` }} />
+              </div>
+            </div>
           </div>
         </div>
 

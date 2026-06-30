@@ -7,6 +7,7 @@ interface RoadmapViewProps {
   userProgress: UserProgress;
   modules: Module[];
   lessons: Lesson[];
+  onUpdateProgress: (updater: (prev: UserProgress) => UserProgress) => void;
   onSelectModule: (moduleId: string) => void;
   onSelectLesson: (lessonId: string) => void;
 }
@@ -15,17 +16,22 @@ export default function RoadmapView({
   userProgress,
   modules,
   lessons,
+  onUpdateProgress,
   onSelectModule,
   onSelectLesson,
 }: RoadmapViewProps) {
+  const currentContext = userProgress.learningContext || 'marketing';
+  const contextModules = modules.filter(m => (m.category || 'marketing') === currentContext);
+  const contextModuleIds = contextModules.map(m => m.id);
+  const contextLessons = lessons.filter(l => contextModuleIds.includes(l.moduleId));
   
-  // Calculate total roadmap progress
-  const totalLessonsCount = lessons.length;
-  const completedCount = userProgress.completedLessons.length;
+  // Calculate total roadmap progress for this context
+  const totalLessonsCount = contextLessons.length;
+  const completedCount = userProgress.completedLessons.filter(id => contextLessons.some(l => l.id === id)).length;
   const roadmapProgress = totalLessonsCount > 0 ? Math.round((completedCount / totalLessonsCount) * 100) : 0;
 
   const handleModuleClick = (module: Module) => {
-    if (module.id === 'a1-m03') {
+    if (module.status === 'unlocked' || module.id === 'a1-m03' || module.id === 'a1-f01') {
       onSelectModule(module.id);
     }
   };
@@ -35,21 +41,25 @@ export default function RoadmapView({
       {/* Page Header */}
       <div className="border-b border-slate-100 pb-5">
         <h2 className="text-2xl font-sans font-bold text-slate-950 tracking-tight">
-          Lộ Trình Học Tập (Learning Roadmap)
+          {currentContext === 'marketing' ? 'Lộ Trình Học Tập (Learning Roadmap)' : 'Lộ Trình Family Life (Family Life Roadmap)'}
         </h2>
         <p className="text-sm text-slate-500 mt-1 max-w-2xl leading-relaxed">
-          Được thiết kế chuẩn hóa theo sự phát triển kỹ năng thực tế của một Marketer từ khi gia nhập môi trường quốc tế đến khi dẫn dắt chiến dịch lớn.
+          {currentContext === 'marketing' 
+            ? 'Được thiết kế chuẩn hóa theo sự phát triển kỹ năng thực tế của một Marketer từ khi gia nhập môi trường quốc tế đến khi dẫn dắt chiến dịch lớn.'
+            : 'Được thiết kế để bạn làm quen với các tình huống giao tiếp ấm áp, lịch sự và hiệu quả cùng người thân hàng ngày.'}
         </p>
       </div>
 
       {/* Global Progress Indicator */}
       <div className="bg-slate-50 border border-slate-100 p-5 rounded-2xl flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <span className="text-[10px] font-mono text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded font-bold uppercase">
-            Tiến độ tổng thể (MVP Progress)
+          <span className={`text-[10px] font-mono px-2 py-0.5 rounded font-bold uppercase ${
+            currentContext === 'marketing' ? 'text-emerald-600 bg-emerald-50' : 'text-sky-600 bg-sky-50'
+          }`}>
+            Tiến độ tổng thể ({currentContext === 'marketing' ? 'Marketing Progress' : 'Family Life Progress'})
           </span>
           <h3 className="text-base font-bold text-slate-900 mt-1">
-            Chương Trình Survival Marketer (A1)
+            {currentContext === 'marketing' ? 'Chương Trình Survival Marketer (A1)' : 'Chương Trình Family Routines & Home Tasks (A1)'}
           </h3>
           <p className="text-xs text-slate-400 mt-0.5">
             Hoàn thành các bài học thực hành để thăng cấp kỹ năng giao tiếp.
@@ -76,7 +86,10 @@ export default function RoadmapView({
       <div className="space-y-10 relative before:absolute before:left-6 before:top-8 before:bottom-8 before:w-0.5 before:bg-slate-100">
         {LEVELS.map((level) => {
           const isLevelUnlocked = level.code === 'A1';
-          const levelModules = modules.filter(m => m.level === level.code);
+          const levelModules = contextModules.filter(m => m.level === level.code);
+
+          // Skip rendering level if it has no modules in this context
+          if (levelModules.length === 0) return null;
 
           return (
             <div key={level.code} className="relative pl-14">
@@ -116,7 +129,7 @@ export default function RoadmapView({
               {isLevelUnlocked ? (
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                   {levelModules.map((module) => {
-                    const isModulePlayable = module.id === 'a1-m03';
+                    const isModulePlayable = module.status === 'unlocked' || module.id === 'a1-m03' || module.id === 'a1-f01';
                     const mLessons = lessons.filter(l => l.moduleId === module.id);
                     const mCompleted = mLessons.filter(l => userProgress.completedLessons.includes(l.id)).length;
                     const mPercent = mLessons.length > 0 ? Math.round((mCompleted / mLessons.length) * 100) : 0;
@@ -139,17 +152,21 @@ export default function RoadmapView({
                             </span>
                             {isModulePlayable ? (
                               mPercent === 100 ? (
-                                <span className="flex items-center gap-1 text-[10px] text-emerald-600 font-semibold bg-emerald-50 px-2 py-0.5 rounded-full">
-                                  <CheckCircle2 className="h-3 w-3" /> Hoàn thành
+                                <span className="flex items-center gap-1 text-[10px] text-emerald-600 font-bold bg-emerald-50 px-2.5 py-0.5 rounded-full">
+                                  <CheckCircle2 className="h-3 w-3" /> Completed (Hoàn thành)
                                 </span>
                               ) : (
-                                <span className="text-[10px] text-amber-600 font-semibold bg-amber-50 px-2 py-0.5 rounded-full">
-                                  {mPercent > 0 ? `Đang học ${mPercent}%` : 'Sẵn sàng'}
+                                <span className={`text-[10px] font-bold px-2.5 py-0.5 rounded-full ${
+                                  mPercent > 0 
+                                    ? 'text-blue-600 bg-blue-50' 
+                                    : 'text-emerald-700 bg-emerald-50 border border-emerald-100'
+                                }`}>
+                                  {mPercent > 0 ? `In Progress (Đang học ${mPercent}%)` : 'Available (Sẵn sàng)'}
                                 </span>
                               )
                             ) : (
-                              <span className="text-[10px] text-slate-400 font-medium bg-slate-50 border border-slate-100 px-2 py-0.5 rounded-full">
-                                Dự kiến ra mắt
+                              <span className="text-[10px] text-slate-500 font-bold bg-amber-50/80 border border-amber-100 px-2.5 py-0.5 rounded-full">
+                                Coming Next (Sắp ra mắt)
                               </span>
                             )}
                           </div>

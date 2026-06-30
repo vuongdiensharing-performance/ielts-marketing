@@ -1,13 +1,15 @@
 import React from 'react';
 import { Volume2, Mic, FileText, PenTool, ArrowRight, Play, Sparkles } from 'lucide-react';
-import { Skill } from '../types';
+import { Skill, UserProgress, Lesson } from '../types';
 
 interface SkillsViewProps {
+  userProgress: UserProgress;
+  onUpdateProgress: (updater: (prev: UserProgress) => UserProgress) => void;
+  lessons: Lesson[];
   onSelectLesson: (lessonId: string) => void;
 }
 
-export default function SkillsView({ onSelectLesson }: SkillsViewProps) {
-  
+export default function SkillsView({ userProgress, onUpdateProgress, lessons, onSelectLesson }: SkillsViewProps) {
   const skillLabs = [
     {
       id: 'listening-lab',

@@ -85,8 +85,8 @@ export default function ModuleDetailView({
         
         <div className="space-y-4">
           <div className="flex flex-wrap items-center gap-3">
-            <span className="text-xs font-mono font-bold text-emerald-600 bg-emerald-50 px-2.5 py-1 rounded-full uppercase tracking-wider">
-              {currentModule.code} • LEVEL A1
+            <span className={`text-xs font-mono font-bold px-2.5 py-1 rounded-full uppercase tracking-wider ${progressPercent === 100 ? 'text-blue-700 bg-blue-100' : 'text-emerald-600 bg-emerald-50'}`}>
+              {progressPercent === 100 ? `🏅 Hoàn Thành • ${currentModule.code}` : `${currentModule.code} • LEVEL A1`}
             </span>
             <span className="text-xs font-mono text-slate-400">
               Chủ đề thực hành
@@ -94,8 +94,13 @@ export default function ModuleDetailView({
           </div>
 
           <div className="space-y-2 max-w-3xl">
-            <h2 className="text-2xl lg:text-3xl font-sans font-bold text-slate-950 tracking-tight">
+            <h2 className="text-2xl lg:text-3xl font-sans font-bold text-slate-950 tracking-tight flex flex-wrap items-center gap-3">
               {currentModule.title}
+              {progressPercent === 100 && (
+                <span className="text-xs bg-blue-600 text-white px-2.5 py-1 rounded-md flex items-center gap-1.5 shadow-sm font-sans tracking-wide">
+                  <CheckCircle2 className="h-4 w-4" /> MODULE MASTERED
+                </span>
+              )}
             </h2>
             <p className="text-sm text-slate-500 leading-relaxed font-sans">
               {currentModule.description}

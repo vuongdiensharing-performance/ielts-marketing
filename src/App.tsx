@@ -4,21 +4,25 @@ import DashboardView from './components/DashboardView';
 import RoadmapView from './components/RoadmapView';
 import SkillsView from './components/SkillsView';
 import VocabularyView from './components/VocabularyView';
+import StructurePage from './components/StructurePage';
 import ReviewView from './components/ReviewView';
 import AnalyticsView from './components/AnalyticsView';
 import ModuleDetailView from './components/ModuleDetailView';
 import LessonWorkspaceView from './components/LessonWorkspaceView';
 
 import { MODULES, LESSONS } from './data/seedData';
-import { UserProgress } from './types';
+import { UserProgress, MigrationMeta } from './types';
 
-const PROGRESS_STORAGE_KEY = 'marketing_english_lab_progress_v0';
+const MEL_V1_PROGRESS_KEY = 'mel_v1_progress';
+const MEL_V1_MIGRATION_META = 'mel_v1_migration_meta';
 
+// ... (keep defaultProgress as is, but maybe enhance types in future)
 const defaultProgress: UserProgress = {
+  learningContext: 'marketing',
   completedLessons: [],
   vocabBookmarks: [],
   formulaBookmarks: [],
-  streakDays: 3, // Seed with 3 streak days for professional, realistic initial experience
+  streakDays: 3,
   lastActiveDate: new Date().toISOString().split('T')[0],
   skillXP: {
     Listening: 15,
@@ -36,42 +40,54 @@ export default function App() {
   const [currentLessonId, setCurrentLessonId] = useState<string | null>(null);
   const [userProgress, setUserProgress] = useState<UserProgress>(defaultProgress);
 
-  // Load progress from localStorage on mount
   useEffect(() => {
-    try {
-      const stored = localStorage.getItem(PROGRESS_STORAGE_KEY);
-      if (stored) {
-        const parsed = JSON.parse(stored);
-        
-        // Handle streak calculations (optional check if they missed a day)
-        const today = new Date().toISOString().split('T')[0];
-        let updatedStreak = parsed.streakDays || 3;
-        
-        if (parsed.lastActiveDate && parsed.lastActiveDate !== today) {
-          const lastDate = new Date(parsed.lastActiveDate);
-          const currentDate = new Date(today);
-          const diffTime = Math.abs(currentDate.getTime() - lastDate.getTime());
-          const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-          
-          if (diffDays > 1) {
-            // Streak reset if missed more than 1 day
-            updatedStreak = 1;
-          } else if (diffDays === 1) {
-            // Incremented streak if precisely 1 day difference
-            updatedStreak = updatedStreak + 1;
-          }
-        }
+    // Migration Logic
+    const legacyKeys = [
+      'marketing_english_lab_progress_v0',
+      'family_life_progress',
+      'family_life_responses',
+      'family_life_xp',
+      'family_life_vocab'
+    ];
 
-        setUserProgress({
-          ...parsed,
-          streakDays: updatedStreak,
-          lastActiveDate: today
-        });
-      } else {
-        localStorage.setItem(PROGRESS_STORAGE_KEY, JSON.stringify(defaultProgress));
-      }
-    } catch (e) {
-      console.error('Failed to parse localStorage progress:', e);
+    const existingMeta = localStorage.getItem(MEL_V1_MIGRATION_META);
+    if (!existingMeta) {
+      const mergedProgress: UserProgress = { ...defaultProgress, lessonResponses: {} };
+      
+      legacyKeys.forEach(key => {
+        const legacyData = localStorage.getItem(key);
+        if (legacyData) {
+          try {
+            const parsed = JSON.parse(legacyData);
+            const trackId = key.includes('family') ? 'family-life' : 'marketing';
+
+            if (parsed.lessonResponses) {
+              Object.entries(parsed.lessonResponses as Record<string, any>).forEach(([lessonId, response]: [string, any]) => {
+                mergedProgress.lessonResponses[lessonId] = {
+                  ...response,
+                  trackId,
+                  topicTags: trackId === 'family-life' ? ['family-life'] : ['marketing'],
+                  updatedAt: new Date().toISOString(),
+                  createdAt: response.createdAt || new Date().toISOString(),
+                };
+              });
+            }
+          } catch(e) { console.error('Migration error', e); }
+        }
+      });
+      
+      const meta: MigrationMeta = {
+        schemaVersion: '1',
+        migratedAt: new Date().toISOString(),
+        migratedFromKeys: legacyKeys,
+        validationPassed: true
+      };
+      localStorage.setItem(MEL_V1_MIGRATION_META, JSON.stringify(meta));
+      localStorage.setItem(MEL_V1_PROGRESS_KEY, JSON.stringify(mergedProgress));
+      setUserProgress(mergedProgress);
+    } else {
+       const stored = localStorage.getItem(MEL_V1_PROGRESS_KEY);
+       if (stored) setUserProgress(JSON.parse(stored));
     }
   }, []);
 
@@ -80,7 +96,7 @@ export default function App() {
     setUserProgress((prev) => {
       const next = updater(prev);
       try {
-        localStorage.setItem(PROGRESS_STORAGE_KEY, JSON.stringify(next));
+        localStorage.setItem(MEL_V1_PROGRESS_KEY, JSON.stringify(next));
       } catch (e) {
         console.error('Failed to save progress to localStorage:', e);
       }
@@ -131,6 +147,8 @@ export default function App() {
           userProgress={userProgress}
           onUpdateProgress={handleUpdateProgress}
           onBackToModule={handleBackToModule}
+          onTabChange={handleTabChange}
+          onSelectLesson={handleSelectLesson}
         />
       );
     }
@@ -157,6 +175,7 @@ export default function App() {
             userProgress={userProgress}
             modules={MODULES}
             lessons={LESSONS}
+            onUpdateProgress={handleUpdateProgress}
             onTabChange={handleTabChange}
             onSelectModule={handleSelectModule}
             onSelectLesson={handleSelectLesson}
@@ -168,12 +187,18 @@ export default function App() {
             userProgress={userProgress}
             modules={MODULES}
             lessons={LESSONS}
+            onUpdateProgress={handleUpdateProgress}
             onSelectModule={handleSelectModule}
             onSelectLesson={handleSelectLesson}
           />
         );
       case 'skills':
-        return <SkillsView onSelectLesson={handleSelectLesson} />;
+        return <SkillsView 
+          userProgress={userProgress}
+          onUpdateProgress={handleUpdateProgress}
+          onSelectLesson={handleSelectLesson} 
+          lessons={LESSONS}
+        />;
       case 'vocabulary':
         return (
           <VocabularyView
@@ -181,6 +206,8 @@ export default function App() {
             onUpdateProgress={handleUpdateProgress}
           />
         );
+      case 'structure':
+        return <StructurePage />;
       case 'review':
         return <ReviewView userProgress={userProgress} />;
       case 'analytics':
@@ -201,6 +228,16 @@ export default function App() {
         currentTab={currentTab} 
         onTabChange={handleTabChange} 
         streakDays={userProgress.streakDays} 
+        currentContext={userProgress.learningContext || 'marketing'}
+        onContextChange={(context) => {
+          handleUpdateProgress(prev => ({
+            ...prev,
+            learningContext: context
+          }));
+          setCurrentModuleId(null);
+          setCurrentLessonId(null);
+          setCurrentTab('dashboard');
+        }}
       />
 
       {/* Main Content Pane */}

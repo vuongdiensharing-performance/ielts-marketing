@@ -8,10 +8,14 @@ import {
   MessageCircle, 
   Sparkles,
   Info,
-  ChevronRight
+  ChevronRight,
+  Volume2,
+  Settings
 } from 'lucide-react';
 import { VocabularyItem, FormulaItem, UserProgress } from '../types';
 import { SEED_VOCABULARY, SEED_FORMULAS } from '../data/seedData';
+import VocabularyDetailDrawer from './VocabularyDetailDrawer';
+import { useSpeech } from '../hooks/useSpeech';
 
 interface VocabularyViewProps {
   userProgress: UserProgress;
@@ -23,12 +27,19 @@ export default function VocabularyView({
   onUpdateProgress,
 }: VocabularyViewProps) {
   
+  const { speak, englishVoices, vietnameseVoices, germanVoices, settings, updateSettings, voicesLoaded, activeEnglishVoice } = useSpeech(userProgress.speechSettings, (updater) => onUpdateProgress(prev => ({...prev, speechSettings: updater(prev.speechSettings)})));
   const [activeSubTab, setActiveSubTab] = useState<'words' | 'formulas'>('words');
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string>('All');
+  const [selectedTrack, setSelectedTrack] = useState<'All' | 'Marketing' | 'Family Life'>('All');
   const [showOnlyStarred, setShowOnlyStarred] = useState(false);
+  const [selectedVocab, setSelectedVocab] = useState<VocabularyItem | null>(null);
 
-  // Vocabulary bookmark helper
+  const handleSpeak = (text: string, context: 'english' | 'vietnamese') => {
+    speak(text, context);
+  };
+
+  // ... (Keep existing bookmark helpers) ...
   const toggleVocabBookmark = (id: string) => {
     onUpdateProgress(prev => {
       const exists = prev.vocabBookmarks.includes(id);
@@ -39,7 +50,6 @@ export default function VocabularyView({
     });
   };
 
-  // Formula bookmark helper
   const toggleFormulaBookmark = (id: string) => {
     onUpdateProgress(prev => {
       const exists = prev.formulaBookmarks.includes(id);
@@ -60,9 +70,12 @@ export default function VocabularyView({
     const matchesSearch = v.word.toLowerCase().includes(searchQuery.toLowerCase()) || 
                           v.vietnameseTranslation.toLowerCase().includes(searchQuery.toLowerCase()) ||
                           v.definition.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesTrack = selectedTrack === 'All' || 
+                         (selectedTrack === 'Marketing' && v.track === 'marketing') ||
+                         (selectedTrack === 'Family Life' && v.track === 'family-life');
     const matchesCategory = selectedCategory === 'All' || v.category === selectedCategory;
     const matchesStarred = !showOnlyStarred || userProgress.vocabBookmarks.includes(v.id);
-    return matchesSearch && matchesCategory && matchesStarred;
+    return matchesSearch && matchesTrack && matchesCategory && matchesStarred;
   });
 
   const filteredFormulas = SEED_FORMULAS.filter(f => {
@@ -75,234 +88,172 @@ export default function VocabularyView({
     return matchesSearch && matchesCategory && matchesStarred;
   });
 
+  const totalCount = SEED_VOCABULARY.length;
+  const marketingCount = SEED_VOCABULARY.filter(v => v.track === 'marketing').length;
+  const familyCount = SEED_VOCABULARY.filter(v => v.track === 'family-life').length;
+  
+  const audit = {
+      missingIPA: SEED_VOCABULARY.filter(v => !v.ipa).length,
+      missingTopic: SEED_VOCABULARY.filter(v => !v.category).length,
+      missingLevel: SEED_VOCABULARY.filter(v => !v.level).length,
+  };
+
   return (
     <div className="space-y-6 max-w-5xl mx-auto p-1 lg:p-4 animate-fade-in">
-      {/* Header section */}
-      <div className="border-b border-slate-100 pb-5">
-        <h2 className="text-2xl font-sans font-bold text-slate-950 tracking-tight">
-          Vocabulary & Formula Bank (Từ vựng & Mẫu câu)
-        </h2>
-        <p className="text-sm text-slate-500 mt-1 max-w-2xl leading-relaxed">
-          Thư viện chứa 40 thuật ngữ marketing cốt lõi cùng các cấu trúc câu giao tiếp phổ biến giúp bạn diễn tả rành mạch mọi thông điệp.
-        </p>
-      </div>
-
-      {/* Main Tabs Selection (Words vs. Formulas) */}
-      <div className="flex border-b border-slate-100 gap-6">
-        <button
-          onClick={() => {
-            setActiveSubTab('words');
-            setSearchQuery('');
-            setSelectedCategory('All');
-          }}
-          className={`pb-4 text-sm font-sans font-bold tracking-tight relative cursor-pointer ${
-            activeSubTab === 'words' ? 'text-emerald-700' : 'text-slate-400 hover:text-slate-600'
-          }`}
-        >
-          <span>Thuật ngữ chuyên ngành ({filteredVocab.length})</span>
-          {activeSubTab === 'words' && (
-            <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-emerald-600" />
-          )}
-        </button>
-
-        <button
-          onClick={() => {
-            setActiveSubTab('formulas');
-            setSearchQuery('');
-            setSelectedCategory('All');
-          }}
-          className={`pb-4 text-sm font-sans font-bold tracking-tight relative cursor-pointer ${
-            activeSubTab === 'formulas' ? 'text-emerald-700' : 'text-slate-400 hover:text-slate-600'
-          }`}
-        >
-          <span>Công thức giao tiếp ({filteredFormulas.length})</span>
-          {activeSubTab === 'formulas' && (
-            <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-emerald-600" />
-          )}
-        </button>
-      </div>
-
-      {/* Search & Filtering Bar */}
-      <div className="bg-white border border-slate-100 rounded-2xl p-4 shadow-xs grid grid-cols-1 md:grid-cols-12 gap-4 items-center">
-        {/* Search input */}
-        <div className="md:col-span-5 relative">
-          <Search className="absolute left-3.5 top-3 h-4 w-4 text-slate-400" />
-          <input
-            type="text"
-            className="w-full pl-10 pr-4 py-2 border border-slate-200 rounded-xl focus:ring-2 focus:ring-emerald-500 text-xs focus:outline-none font-sans"
-            placeholder={activeSubTab === 'words' ? "Tìm thuật ngữ, nghĩa Tiếng Việt..." : "Tìm công thức, ví dụ..."}
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-          />
-        </div>
-
-        {/* Category selector */}
-        <div className="md:col-span-4 flex items-center gap-2">
-          <Filter className="h-4 w-4 text-slate-400 shrink-0" />
-          <select
-            className="w-full p-2 border border-slate-200 rounded-xl focus:ring-2 focus:ring-emerald-500 text-xs focus:outline-none font-sans bg-white"
-            value={selectedCategory}
-            onChange={(e) => setSelectedCategory(e.target.value)}
-          >
-            {activeCategories.map((cat) => (
-              <option key={cat} value={cat}>
-                {cat === 'All' ? 'Tất cả chủ đề' : cat}
-              </option>
-            ))}
-          </select>
-        </div>
-
-        {/* Toggle Star filter */}
-        <div className="md:col-span-3 flex items-center justify-end">
-          <label className="flex items-center gap-2 text-xs font-sans text-slate-500 select-none cursor-pointer">
-            <input
-              type="checkbox"
-              className="h-4 w-4 rounded text-emerald-600 focus:ring-emerald-500 border-slate-200 cursor-pointer"
-              checked={showOnlyStarred}
-              onChange={(e) => setShowOnlyStarred(e.target.checked)}
-            />
-            <span className="flex items-center gap-1">
-              <Star className="h-3.5 w-3.5 text-amber-500 fill-amber-400" />
-              Chỉ xem mục đã lưu
-            </span>
-          </label>
-        </div>
-      </div>
-
-      {/* DISPLAY LIST */}
-      {activeSubTab === 'words' ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {filteredVocab.map((vocab) => {
-            const isStarred = userProgress.vocabBookmarks.includes(vocab.id);
-            return (
-              <div 
-                key={vocab.id} 
-                className="bg-white border border-slate-100 rounded-2xl p-5 hover:border-slate-200 transition-all shadow-xs relative flex flex-col justify-between space-y-4"
-              >
-                {/* Star bookmark Button */}
-                <button
-                  onClick={() => toggleVocabBookmark(vocab.id)}
-                  className="absolute right-4 top-4 text-slate-300 hover:text-amber-500 cursor-pointer focus:outline-none"
-                >
-                  <Star className={`h-5 w-5 ${isStarred ? 'fill-amber-400 text-amber-500' : ''}`} />
-                </button>
-
-                <div className="space-y-3">
-                  <div>
-                    <span className="text-[9px] font-mono font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded">
-                      {vocab.category}
-                    </span>
-                    <h3 className="text-lg font-sans font-bold text-slate-900 tracking-tight mt-1.5 flex items-center gap-2">
-                      {vocab.word}
-                      <span className="text-[10px] font-mono font-normal text-slate-400 lowercase">({vocab.partOfSpeech})</span>
-                    </h3>
-                  </div>
-
-                  {/* Vietnamese meaning */}
-                  <div className="bg-emerald-50/30 p-2.5 rounded-xl border border-emerald-50/50">
-                    <span className="text-[9px] font-bold text-emerald-700 block">DỊCH NGHĨA:</span>
-                    <p className="text-xs text-slate-800 font-bold font-sans mt-0.5">{vocab.vietnameseTranslation}</p>
-                  </div>
-
-                  <p className="text-xs text-slate-500 leading-relaxed font-sans">
-                    {vocab.definition}
-                  </p>
-                </div>
-
-                {/* Example sentence & context details */}
-                <div className="border-t border-slate-50 pt-4 space-y-3">
-                  <div className="text-xs">
-                    <strong className="text-slate-600 block">Câu ví dụ (Example):</strong>
-                    <p className="text-slate-700 font-sans italic mt-0.5">"{vocab.exampleSentence}"</p>
-                    <p className="text-slate-400 mt-0.5">→ {vocab.exampleTranslation}</p>
-                  </div>
-
-                  <div className="text-[10px] bg-slate-50 p-2.5 rounded-lg border border-slate-100 text-slate-500 leading-relaxed flex items-start gap-1.5">
-                    <Info className="h-3.5 w-3.5 text-slate-400 shrink-0 mt-0.5" />
-                    <p>
-                      <strong>Ngữ cảnh Marketing:</strong> {vocab.marketingContext}
-                    </p>
-                  </div>
-                </div>
-              </div>
-            );
-          })}
-
-          {filteredVocab.length === 0 && (
-            <div className="md:col-span-2 text-center bg-slate-50 border border-slate-100 p-8 rounded-2xl space-y-2">
-              <BookOpen className="h-10 w-10 text-slate-300 mx-auto" />
-              <p className="text-xs font-sans text-slate-400">Không tìm thấy từ vựng nào khớp với điều kiện tìm kiếm.</p>
+        {/* Voice Settings */}
+        <div className="bg-white border border-slate-100 rounded-2xl p-4 mb-4 text-xs font-sans text-slate-600 space-y-4">
+            <span className="font-bold flex items-center gap-2"><Settings className="h-4 w-4" /> Voice Settings</span>
+            
+            <div className="flex flex-wrap gap-4 items-center">
+                <label>Voice đọc tiếng Anh
+                    <select value={settings.selectedEnglishVoiceName} onChange={(e) => updateSettings({...settings, selectedEnglishVoiceName: e.target.value})} className="border border-slate-200 rounded-lg p-1 ml-2">
+                        {englishVoices.map(v => <option key={v.name} value={v.name}>{v.name}</option>)}
+                        {!englishVoices.find(v => v.name === settings.selectedEnglishVoiceName) && settings.selectedEnglishVoiceName !== 'Google US English' && <option value={settings.selectedEnglishVoiceName}>{settings.selectedEnglishVoiceName}</option>}
+                    </select>
+                </label>
+                
+                <label>Giọng đọc tiếng Việt
+                    <select value={settings.selectedVietnameseVoiceName} onChange={(e) => updateSettings({...settings, selectedVietnameseVoiceName: e.target.value})} className="border border-slate-200 rounded-lg p-1 ml-2">
+                        {vietnameseVoices.map(v => <option key={v.name} value={v.name}>{v.name}</option>)}
+                    </select>
+                </label>
             </div>
-          )}
-        </div>
-      ) : (
-        <div className="space-y-4">
-          {filteredFormulas.map((formula) => {
-            const isStarred = userProgress.formulaBookmarks.includes(formula.id);
-            return (
-              <div 
-                key={formula.id} 
-                className="bg-white border border-slate-100 rounded-2xl p-5 hover:border-slate-200 transition-all shadow-xs relative flex flex-col md:flex-row gap-6"
-              >
-                {/* Star bookmark Button */}
-                <button
-                  onClick={() => toggleFormulaBookmark(formula.id)}
-                  className="absolute right-4 top-4 text-slate-300 hover:text-amber-500 cursor-pointer focus:outline-none"
-                >
-                  <Star className={`h-5 w-5 ${isStarred ? 'fill-amber-400 text-amber-500' : ''}`} />
-                </button>
-
-                {/* Left col */}
-                <div className="md:w-1/2 space-y-3">
-                  <div>
-                    <span className="text-[9px] font-mono font-bold text-blue-600 bg-blue-50 px-2 py-0.5 rounded">
-                      {formula.category}
-                    </span>
-                    <h3 className="text-base font-mono font-bold text-emerald-800 tracking-tight mt-2 leading-relaxed">
-                      {formula.structure}
-                    </h3>
-                  </div>
-
-                  <div className="space-y-1 text-xs">
-                    <p className="text-slate-700 leading-relaxed">
-                      <strong>Mục đích:</strong> {formula.purpose}
-                    </p>
-                    <p className="text-slate-400 italic">
-                      → {formula.purposeVi}
-                    </p>
-                  </div>
-                </div>
-
-                {/* Right col */}
-                <div className="md:w-1/2 md:border-l border-slate-100 md:pl-6 space-y-3 pt-4 md:pt-0">
-                  <div className="bg-slate-50 p-3.5 rounded-xl border border-slate-100 space-y-1.5">
-                    <span className="text-[10px] font-bold text-slate-500 block uppercase tracking-wider font-mono">
-                      Ví dụ giao tiếp (Workplace Example)
-                    </span>
-                    <p className="text-xs text-slate-900 font-mono font-medium">
-                      "{formula.example}"
-                    </p>
-                    <p className="text-[11px] text-slate-500">
-                      → {formula.exampleVi}
-                    </p>
-                  </div>
-
-                  <p className="text-[11px] text-slate-500 leading-relaxed">
-                    💡 <strong>Mẹo dùng thực tế:</strong> {formula.usageTip}
-                  </p>
-                </div>
-              </div>
-            );
-          })}
-
-          {filteredFormulas.length === 0 && (
-            <div className="text-center bg-slate-50 border border-slate-100 p-8 rounded-2xl space-y-2">
-              <Bookmark className="h-10 w-10 text-slate-300 mx-auto" />
-              <p className="text-xs font-sans text-slate-400">Không tìm thấy cấu trúc câu nào khớp với điều kiện tìm kiếm.</p>
+            
+            <div className="flex flex-wrap gap-2 items-center">
+                <span>Tốc độ</span>
+                {[0.9, 1.1, 1.3, 1.5, 1.7].map(rate => (
+                    <button key={rate} onClick={() => updateSettings({...settings, speechRatePreset: rate})} className={`px-2 py-1 rounded ${settings.speechRatePreset === rate ? 'bg-emerald-100 text-emerald-800' : 'bg-slate-100'}`}>
+                        {rate === 0.9 ? 'Rõ từng từ' : rate === 1.1 ? 'Học chuẩn' : rate === 1.3 ? 'Tự nhiên' : rate === 1.5 ? 'Nhanh' : 'Rất nhanh'} · {rate}x
+                    </button>
+                ))}
             </div>
-          )}
+
+            <div className="flex gap-2">
+                <button onClick={() => previewEnglishVoice("Hi team, I am testing two new creatives for the TikTok campaign.")} className="text-emerald-700 underline">Nghe thử giọng</button>
+                <button onClick={() => updateSettings({selectedEnglishVoiceName: 'Google US English', selectedVietnameseVoiceName: 'Linh', speechRatePreset: 1.1})} className="text-emerald-700 underline">Khôi phục đề xuất</button>
+            </div>
+            
+            {activeEnglishVoice && activeEnglishVoice.name !== settings.selectedEnglishVoiceName && !['Google US English', 'Google UK English Female', 'Google UK English Male'].includes(settings.selectedEnglishVoiceName) && (
+                <p className="text-amber-700">Giọng thay thế: {activeEnglishVoice.name}</p>
+            )}
         </div>
-      )}
+        
+        {process.env.NODE_ENV !== 'production' && (
+            <div className="bg-slate-900 border border-slate-800 rounded-xl p-4 mb-4 text-xs font-mono text-slate-300">
+                <p className="font-bold mb-1 text-slate-100">Voice Diagnostics:</p>
+                <p>Voices Loaded: {voicesLoaded ? 'Yes' : 'No'}</p>
+                <p>Active English: {activeEnglishVoice?.name || 'None'}</p>
+                <p>Rate: {settings.speechRatePreset}</p>
+                <p className="mt-2 text-slate-500">Available English: {englishVoices.length}</p>
+            </div>
+        )}
+
+        {/* Header section */}
+        <div className="border-b border-slate-100 pb-5">
+          <h2 className="text-2xl font-sans font-bold text-slate-950 tracking-tight">
+            Từ vựng (Vocabulary)
+          </h2>
+          <p className="text-sm text-slate-500 mt-1 max-w-2xl leading-relaxed">
+            Tra cứu, phát âm và lưu trữ thuật ngữ Marketing & Family Life.
+          </p>
+        </div>
+
+        {/* Search & Filtering Bar */}
+        <div className="bg-white border border-slate-100 rounded-2xl p-4 shadow-xs grid grid-cols-1 md:grid-cols-4 gap-4 items-center">
+            <div className="relative">
+              <Search className="absolute left-3.5 top-3 h-4 w-4 text-slate-400" />
+              <input
+                type="text"
+                className="w-full pl-10 pr-4 py-2 border border-slate-200 rounded-xl focus:ring-2 focus:ring-emerald-500 text-xs focus:outline-none font-sans"
+                placeholder="Tìm từ vựng..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+              />
+            </div>
+            
+            <select className="p-2 border border-slate-200 rounded-xl text-xs" value={selectedTrack} onChange={(e) => setSelectedTrack(e.target.value as any)}>
+                <option value="All">Tất cả Tracks</option>
+                <option value="Marketing">Marketing</option>
+                <option value="Family Life">Family Life</option>
+            </select>
+
+            <select className="p-2 border border-slate-200 rounded-xl text-xs" value={selectedCategory} onChange={(e) => setSelectedCategory(e.target.value)}>
+                {vocabCategories.map(cat => <option key={cat} value={cat}>{cat === 'All' ? 'Tất cả' : cat}</option>)}
+            </select>
+            
+            <label className="flex items-center gap-2 text-xs font-sans text-slate-500 select-none cursor-pointer">
+              <input
+                type="checkbox"
+                className="h-4 w-4 rounded text-emerald-600 focus:ring-emerald-500 border-slate-200 cursor-pointer"
+                checked={showOnlyStarred}
+                onChange={(e) => setShowOnlyStarred(e.target.checked)}
+              />
+              <span>Chỉ xem đã lưu</span>
+            </label>
+        </div>
+
+        {/* Vocabulary Table */}
+        <div className="bg-white border border-slate-100 rounded-2xl p-4">
+            <div className="md:hidden space-y-3">
+              {filteredVocab.map(v => (
+                <div key={v.id} className="bg-white border border-slate-100 p-4 rounded-xl shadow-sm space-y-2 cursor-pointer" onClick={() => setSelectedVocab(v)}>
+                    <div className="flex justify-between items-center">
+                        <span className="font-bold">{v.word}</span>
+                        <span className="font-mono text-emerald-700 text-xs">/{v.ipa}/</span>
+                    </div>
+                    <div className="text-xs text-slate-500 truncate">{v.exampleSentence}</div>
+                    <div className="flex justify-between items-center pt-2">
+                        <span className="text-[10px] bg-slate-100 px-2 py-1 rounded">{v.category}</span>
+                        <div className="flex gap-2">
+                          <button onClick={(e) => { e.stopPropagation(); speak(v.word); }} className="text-slate-400"><Volume2 className="h-4 w-4" /></button>
+                          <button onClick={(e) => { e.stopPropagation(); toggleVocabBookmark(v.id); }} className="text-slate-400"><Star className={`h-4 w-4 ${userProgress.vocabBookmarks.includes(v.id) ? 'fill-current' : ''}`} /></button>
+                        </div>
+                    </div>
+                </div>
+              ))}
+            </div>
+
+            <table className="w-full text-left text-xs hidden md:table">
+              <thead>
+                <tr className="border-b border-slate-100 text-slate-500">
+                  <th className="p-3">Keyword</th>
+                  <th className="p-3">Phiên âm</th>
+                  <th className="p-3">Chủ đề</th>
+                  <th className="p-3">Câu ví dụ</th>
+                </tr>
+              </thead>
+              <tbody>
+                {filteredVocab.map(v => (
+                    <tr key={v.id} className="group border-b border-slate-50 hover:bg-slate-50 cursor-pointer" onClick={() => setSelectedVocab(v)}>
+                    <td className="p-3 font-semibold">
+                      <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-2">
+                              {v.word}
+                              {v.track && <span className={`text-[9px] px-1.5 py-0.5 rounded ${v.track === 'marketing' ? 'bg-blue-50 text-blue-700' : 'bg-purple-50 text-purple-700'}`}>{v.track === 'marketing' ? 'M' : 'F'}</span>}
+                          </div>
+                          <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                              <button onClick={(e) => { e.stopPropagation(); handleSpeak(v.word, 'english'); }} className="text-slate-400 hover:text-emerald-600"><Volume2 className="h-4 w-4" /></button>
+                              <button onClick={(e) => { e.stopPropagation(); toggleVocabBookmark(v.id); }} className="text-slate-400 hover:text-amber-500"><Star className={`h-4 w-4 ${userProgress.vocabBookmarks.includes(v.id) ? 'fill-current' : ''}`} /></button>
+                          </div>
+                      </div>
+                    </td>
+                    <td className="p-3 font-mono text-emerald-700">{v.ipa || '-'}</td>
+                    <td className="p-3">{v.category}</td>
+                    <td className="p-3 text-slate-600 max-w-[200px] truncate">{v.exampleSentence}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+        </div>
+        
+        <VocabularyDetailDrawer 
+            vocab={selectedVocab} 
+            isOpen={!!selectedVocab} 
+            onClose={() => setSelectedVocab(null)} 
+            onBookmark={toggleVocabBookmark}
+            isStarred={selectedVocab ? userProgress.vocabBookmarks.includes(selectedVocab.id) : false}
+            onPlay={(text) => handleSpeak(text, 'english')}
+        />
     </div>
   );
 }

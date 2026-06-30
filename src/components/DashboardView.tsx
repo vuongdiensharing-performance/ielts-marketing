@@ -19,6 +19,7 @@ interface DashboardViewProps {
   userProgress: UserProgress;
   modules: Module[];
   lessons: Lesson[];
+  onUpdateProgress: (updater: (prev: UserProgress) => UserProgress) => void;
   onTabChange: (tab: string) => void;
   onSelectModule: (moduleId: string) => void;
   onSelectLesson: (lessonId: string) => void;
@@ -28,20 +29,31 @@ export default function DashboardView({
   userProgress,
   modules,
   lessons,
+  onUpdateProgress,
   onTabChange,
   onSelectModule,
   onSelectLesson,
 }: DashboardViewProps) {
-  
   // Calculate stats
-  const totalLessons = lessons.length;
-  const completedCount = userProgress.completedLessons.length;
+  const currentContext = userProgress.learningContext || 'marketing';
+  const contextModules = modules.filter(m => (m.category || 'marketing') === currentContext);
+  const contextModuleIds = contextModules.map(m => m.id);
+  const contextLessons = lessons.filter(l => contextModuleIds.includes(l.moduleId));
+  const totalLessons = contextLessons.length;
+  
+  const completedCount = userProgress.completedLessons.filter(id => contextLessons.some(l => l.id === id)).length;
   const progressPercent = totalLessons > 0 ? Math.round((completedCount / totalLessons) * 100) : 0;
   
-  const activeModule = modules.find(m => m.id === 'a1-m03'); // Real-Time Work Updates
-  const m03Lessons = lessons.filter(l => l.moduleId === 'a1-m03');
-  const m03CompletedCount = m03Lessons.filter(l => userProgress.completedLessons.includes(l.id)).length;
-  const m03Percent = m03Lessons.length > 0 ? Math.round((m03CompletedCount / m03Lessons.length) * 100) : 0;
+  // Find active module based on context
+  const activeModuleId = currentContext === 'marketing' ? 'a1-m03' : 'a1-f01';
+  const activeModule = modules.find(m => m.id === activeModuleId);
+    
+  const activeModuleLessons = activeModule ? lessons.filter(l => l.moduleId === activeModule.id) : [];
+  const activeModuleCompletedCount = activeModuleLessons.filter(l => userProgress.completedLessons.includes(l.id)).length;
+  const activeModulePercent = activeModuleLessons.length > 0 ? Math.round((activeModuleCompletedCount / activeModuleLessons.length) * 100) : 0;
+  
+  const activeLesson = activeModuleLessons.find(l => !userProgress.completedLessons.includes(l.id)) || activeModuleLessons[0];
+
 
   // Skill breakdown cards
   const skillIcons: Record<Skill, any> = {
@@ -62,8 +74,8 @@ export default function DashboardView({
 
   const skillXp = userProgress.skillXP;
 
-  // Tip of the day content (realistic marketing English coaching)
-  const tipOfTheDay = {
+  // Tip of the day content (realistic English coaching)
+  const marketingTip = {
     expression: "We are seeing a downward trend in our CTR...",
     translation: "Chúng ta đang thấy xu hướng giảm ở tỷ lệ nhấp chuột (CTR)...",
     context: "Sử dụng khi báo cáo số liệu chiến dịch bị sụt giảm trong cuộc họp hiệu quả (Performance meeting). Tránh nói 'The CTR is very bad, it is down'. Thay vào đó, hãy nói cụ thể nguyên nhân và giải pháp đi kèm.",
@@ -71,20 +83,34 @@ export default function DashboardView({
     exampleVi: "Chúng ta đang thấy xu hướng giảm ở CTR quảng cáo Facebook, vì vậy hôm nay chúng ta sẽ chạy 3 biến thể nội dung mới để chống hiện tượng nhàm chán quảng cáo."
   };
 
+  const familyTip = {
+    expression: "Could you please help me with the laundry today?",
+    translation: "Bạn có thể vui lòng giúp tôi giặt đồ hôm nay được không?",
+    context: "Sử dụng khi nhờ vả người nhà một cách nhẹ nhàng và lịch sự. Thêm 'Could you please help me with...' giúp yêu cầu trở nên ấm áp, văn minh thay vì ra lệnh 'Wash the clothes'.",
+    example: "Could you please help me with the laundry today? I'll be home late from work and want to make sure the kids have clean uniforms tomorrow.",
+    exampleVi: "Bạn có thể vui lòng giúp tôi giặt đồ hôm nay được không? Tôi sẽ đi làm về muộn và muốn đảm bảo ngày mai lũ trẻ có đồng phục sạch."
+  };
+
+  const tipOfTheDay = currentContext === 'marketing' ? marketingTip : familyTip;
+
   return (
     <div className="space-y-8 max-w-5xl mx-auto p-1 lg:p-4">
       {/* Welcome Banner */}
       <div className="bg-white border border-slate-100 rounded-3xl p-6 lg:p-8 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-6 relative overflow-hidden">
         <div className="absolute right-0 top-0 bg-emerald-500/5 h-36 w-36 rounded-full -mr-8 -mt-8"></div>
         <div className="relative z-10 space-y-2">
-          <span className="text-xs font-semibold text-emerald-600 bg-emerald-50 px-2.5 py-1 rounded-full uppercase tracking-wider font-mono">
-            MARKETING WORKSPACE
+          <span className={`text-xs font-semibold px-2.5 py-1 rounded-full uppercase tracking-wider font-mono ${
+            currentContext === 'marketing' ? 'text-emerald-600 bg-emerald-50' : 'text-sky-600 bg-sky-50'
+          }`}>
+            {currentContext === 'marketing' ? 'MARKETING WORKSPACE' : 'FAMILY LIFE HUB'}
           </span>
           <h2 className="text-2xl lg:text-3xl font-sans font-bold text-slate-950 tracking-tight">
             Chào mừng bạn quay lại học tập! 👋
           </h2>
           <p className="text-sm text-slate-500 max-w-xl leading-relaxed">
-            Hôm nay bạn muốn mài giũa kỹ năng tiếng Anh nào để tối ưu công việc? Lộ trình của bạn đã được thiết kế riêng cho các tình huống làm việc thực tế tại Agency & Client.
+            {currentContext === 'marketing' 
+              ? 'Hôm nay bạn muốn mài giũa kỹ năng tiếng Anh nào để tối ưu công việc? Lộ trình của bạn đã được thiết kế riêng cho các tình huống làm việc thực tế tại Agency & Client.'
+              : 'Hôm nay bạn muốn rèn luyện kỹ năng tiếng Anh gia đình nào? Hãy tự tin giao tiếp và phối hợp các công việc hàng ngày cùng người thân.'}
           </p>
         </div>
 
@@ -111,17 +137,22 @@ export default function DashboardView({
         <div className="md:col-span-7 bg-white border border-slate-100 rounded-3xl p-6 shadow-xs flex flex-col justify-between space-y-6">
           <div className="space-y-4">
             <div className="flex items-center justify-between">
-              <span className="text-[11px] font-mono text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded font-bold uppercase">
-                Đang học • {activeModule?.code}
+              <span className={`text-[11px] font-mono px-2 py-0.5 rounded font-bold uppercase ${activeModulePercent === 100 ? 'text-blue-700 bg-blue-100' : 'text-emerald-600 bg-emerald-50'}`}>
+                {activeModulePercent === 100 ? '🏅 Đã Hoàn Thành' : 'Đang học'} • {activeModule?.code}
               </span>
               <span className="text-xs text-slate-400 font-medium font-sans">
-                Tiến độ: {m03CompletedCount}/{m03Lessons.length} bài ({m03Percent}%)
+                Tiến độ: {activeModuleCompletedCount}/{activeModuleLessons.length} bài ({activeModulePercent}%)
               </span>
             </div>
 
             <div className="space-y-2">
-              <h3 className="text-xl font-bold text-slate-900 font-sans tracking-tight">
+              <h3 className="text-xl font-bold text-slate-900 font-sans tracking-tight flex items-center gap-2">
                 {activeModule?.title}
+                {activeModulePercent === 100 && (
+                  <span className="text-xs bg-blue-600 text-white px-2 py-1 rounded-md ml-2 flex items-center gap-1 shadow-sm">
+                    <CheckCircle2 className="h-3 w-3" /> MODULE MASTERED
+                  </span>
+                )}
               </h3>
               <p className="text-xs text-slate-400 leading-relaxed font-sans">
                 Mục tiêu: {activeModule?.outcome}
@@ -134,19 +165,24 @@ export default function DashboardView({
             {/* Progress Bar */}
             <div className="w-full bg-slate-100 h-2 rounded-full overflow-hidden">
               <div 
-                className="bg-emerald-600 h-full rounded-full transition-all duration-500" 
-                style={{ width: `${m03Percent}%` }}
+                className={`${activeModulePercent === 100 ? 'bg-blue-600' : 'bg-emerald-600'} h-full rounded-full transition-all duration-500`} 
+                style={{ width: `${activeModulePercent}%` }}
               />
             </div>
           </div>
 
           <div className="flex flex-col sm:flex-row gap-3 pt-2">
             <button
-              onClick={() => activeModule && onSelectModule(activeModule.id)}
+              onClick={() => {
+                if (activeModule && activeLesson) {
+                  onSelectModule(activeModule.id);
+                  onSelectLesson(activeLesson.id);
+                }
+              }}
               className="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white font-sans text-xs font-semibold px-4 py-3 rounded-xl flex items-center justify-center gap-2 cursor-pointer transition-colors"
             >
               <Play className="h-4 w-4 fill-current" />
-              <span>{m03Percent > 0 ? 'Học tiếp Module' : 'Bắt đầu Module'}</span>
+              <span>{activeModulePercent === 100 ? 'Ôn tập lại Module' : activeModulePercent > 0 ? `Học tiếp: ${activeLesson?.title}` : 'Bắt đầu Module'}</span>
             </button>
             <button
               onClick={() => onTabChange('roadmap')}
@@ -163,7 +199,9 @@ export default function DashboardView({
           <div className="space-y-3">
             <div className="flex items-center gap-2 text-amber-400">
               <Sparkles className="h-4 w-4" />
-              <span className="text-xs font-mono font-bold uppercase tracking-wider">MARKETING ENGLISH TIP</span>
+              <span className="text-xs font-mono font-bold uppercase tracking-wider">
+                {currentContext === 'marketing' ? 'MARKETING ENGLISH TIP' : 'FAMILY ENGLISH TIP'}
+              </span>
             </div>
 
             <div className="space-y-1.5">
@@ -243,14 +281,16 @@ export default function DashboardView({
         <div className="flex items-center justify-between border-b border-slate-50 pb-3">
           <div>
             <h3 className="text-lg font-sans font-bold text-slate-900 tracking-tight">
-              Danh sách bài học trong Module M03
+              {currentContext === 'marketing' ? 'Danh sách bài học trong Module M03' : 'Danh sách bài học trong Module F01'}
             </h3>
             <p className="text-xs text-slate-400 mt-0.5">
-              Tập trung hoàn toàn vào các tình huống thực tế để báo cáo tiến độ công việc.
+              {currentContext === 'marketing' 
+                ? 'Tập trung hoàn toàn vào các tình huống thực tế để báo cáo tiến độ công việc.' 
+                : 'Tập trung vào các tình huống phối hợp sinh hoạt gia đình thực tế.'}
             </p>
           </div>
           <button 
-            onClick={() => onSelectModule('a1-m03')}
+            onClick={() => onSelectModule(activeModuleId)}
             className="text-xs font-semibold text-emerald-600 hover:text-emerald-700 flex items-center gap-1 cursor-pointer transition-colors"
           >
             <span>Chi tiết Module</span>
@@ -259,7 +299,7 @@ export default function DashboardView({
         </div>
 
         <div className="space-y-3">
-          {m03Lessons.map((lesson) => {
+          {activeModuleLessons.map((lesson) => {
             const isCompleted = userProgress.completedLessons.includes(lesson.id);
             const MainIcon = skillIcons[lesson.mainSkill] || BookOpen;
             
