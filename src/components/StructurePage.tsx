@@ -12,6 +12,7 @@ import {
 } from '../data/structureData';
 import WordFamilyLab from './WordFamilyLab';
 import SentenceFormulaLab from './SentenceFormulaLab';
+import ConversationBuilderLab from './ConversationBuilderLab';
 
 export default function StructurePage() {
   const [activeTab, setActiveTab] = useState<'ipa' | 'rules' | 'formulas' | 'conversations'>('ipa');
@@ -872,60 +873,7 @@ export default function StructurePage() {
 
       {/* TAB 4: CONVERSATION BUILDER (ROADMAP PREVIEW) */}
       {activeTab === 'conversations' && (
-        <div className="space-y-6 animate-fade-in">
-          <div className="bg-white border border-slate-100 rounded-2xl p-8 shadow-xs max-w-3xl mx-auto space-y-6">
-            <div className="flex gap-4 items-start border-b border-slate-50 pb-5">
-              <div className="p-3 bg-emerald-50 rounded-xl text-emerald-700">
-                <MessageSquare className="h-6 w-6" />
-              </div>
-              <div>
-                <h3 className="text-lg font-sans font-bold text-slate-900 tracking-tight">Phát triển phản xạ ý tưởng (Conversation Builder)</h3>
-                <p className="text-sm text-slate-500 mt-1">
-                  Đang phát triển theo Lộ trình học — Module dự kiến ra mắt trong phiên bản tới.
-                </p>
-              </div>
-            </div>
-
-            <div className="space-y-4 font-sans text-slate-700 text-sm">
-              <p className="leading-relaxed">
-                Biến đổi những suy nghĩ thô (bằng tiếng Việt hoặc tiếng Anh bồi) thành các câu tiếng Anh chỉn chu, đúng văn cảnh chuyên nghiệp của giới Marketing và đời sống hằng ngày.
-              </p>
-
-              <div className="bg-slate-50/50 rounded-xl p-4 border border-slate-100 space-y-3">
-                <h4 className="text-xs font-bold text-emerald-800 uppercase tracking-wider">Mục tiêu và Nội dung cốt lõi của khóa:</h4>
-                <ul className="space-y-2.5 text-xs text-slate-600">
-                  <li className="flex gap-2 items-start">
-                    <Check className="h-4 w-4 text-emerald-600 flex-shrink-0 mt-0.5" />
-                    <span><strong>Triển khai ý tưởng theo công thức P.E.E.L:</strong> Phương pháp viết và nói cực kỳ khoa học (Point - Explanation - Example - Link) giúp bài giải thích hay thuyết trình chặt chẽ.</span>
-                  </li>
-                  <li className="flex gap-2 items-start">
-                    <Check className="h-4 w-4 text-emerald-600 flex-shrink-0 mt-0.5" />
-                    <span><strong>Xử lý tình huống bất ngờ (Ad-hoc situations):</strong> Phản xạ nhanh trong 3 giây khi sếp hỏi tiến độ đột xuất, khách hàng feedback gắt hoặc gia đình cần xử lý khẩn cấp.</span>
-                  </li>
-                  <li className="flex gap-2 items-start">
-                    <Check className="h-4 w-4 text-emerald-600 flex-shrink-0 mt-0.5" />
-                    <span><strong>Thương thảo và giải quyết mâu thuẫn:</strong> Giao tiếp thông minh giảm thiểu xung đột, đàm phán deadline mềm mại mà không làm mất lòng đối tác hay bạn đời.</span>
-                  </li>
-                  <li className="flex gap-2 items-start">
-                    <Check className="h-4 w-4 text-emerald-600 flex-shrink-0 mt-0.5" />
-                    <span><strong>Chiến thuật triển khai IELTS Speaking Part 2 & Part 3:</strong> Cách kéo dài câu trả lời logic, sâu sắc mà tự nhiên bằng cách sử dụng các từ chuyển tiếp (Transition words).</span>
-                  </li>
-                </ul>
-              </div>
-
-              <div className="pt-4 border-t border-slate-50 flex items-center justify-between">
-                <span className="text-xs text-slate-400 font-sans italic">Tiến độ thiết kế nội dung: 65% hoàn thành</span>
-                <button
-                  onClick={() => alert("Cảm ơn bạn đã quan tâm! Chúng tôi sẽ gửi thông báo ngay khi bài học này được cập nhật đầy đủ.")}
-                  className="flex items-center gap-1 px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-semibold transition-colors"
-                >
-                  <span>Đăng ký nhận thông báo bản cập nhật</span>
-                  <ArrowRight className="h-3.5 w-3.5" />
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
+        <ConversationBuilderLab />
       )}
 
     </div>
